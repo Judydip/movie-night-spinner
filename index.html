@@ -7,302 +7,315 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            font-family: system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', sans-serif;
-        }
-        body {
-            background: linear-gradient(145deg, #0a0f1c 0%, #0f172a 100%);
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        /* Passcode screen */
-        .passcode-screen {
-            background: rgba(15, 25, 45, 0.95);
-            backdrop-filter: blur(12px);
-            border-radius: 48px;
-            padding: 40px 24px;
-            max-width: 400px;
-            margin: 100px auto;
-            text-align: center;
-            border: 1px solid #FFD966;
-        }
-        .passcode-screen h2 { color: #FFD966; margin-bottom: 24px; }
-        .passcode-screen input {
-            width: 100%;
-            padding: 14px;
-            border-radius: 60px;
-            border: none;
-            background: #1e2a3e;
-            color: white;
-            font-size: 1rem;
-            text-align: center;
-            margin-bottom: 16px;
-        }
-        .passcode-screen button {
-            background: #FFB347;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 60px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .error-msg { color: #ff8888; margin-top: 12px; font-size: 0.85rem; }
-        
-        /* Main App */
-        .main-app {
-            display: none;
-            background: rgba(15, 25, 45, 0.7);
-            backdrop-filter: blur(12px);
-            border-radius: 48px;
-            padding: 24px 20px 32px;
-            box-shadow: 0 25px 45px rgba(0,0,0,0.5);
-        }
-        h1 {
-            text-align: center;
-            font-size: 1.8rem;
-            margin: 0 0 8px;
-            background: linear-gradient(135deg, #FFD966, #FFB347);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        .saturday-bar {
-            background: #07121f;
-            border-radius: 60px;
-            padding: 10px 20px;
-            margin-bottom: 24px;
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .saturday-bar label { color: #FFD966; font-weight: bold; }
-        #saturdayPicker {
-            background: #1e2a3e;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 40px;
-            border: 1px solid #FFD966;
-            cursor: pointer;
-            font-family: monospace;
-            font-size: 0.9rem;
-        }
-        .new-saturday-btn {
-            background: #2c3e5c;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 40px;
-            color: white;
-            cursor: pointer;
-        }
-        
-        /* Movie Pool Section */
-        .pool-section {
-            background: #07121f;
-            border-radius: 32px;
-            padding: 20px;
-            margin-bottom: 24px;
-            border: 1px solid #4a7a3a;
-        }
-        .section-title {
-            font-size: 1.3rem;
-            font-weight: bold;
-            margin-bottom: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .pool-title { color: #7eff6e; }
-        .add-movie-form {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        .add-movie-form input {
-            flex: 2;
-            padding: 12px 16px;
-            border-radius: 60px;
-            border: none;
-            background: #1e2a3e;
-            color: white;
-        }
-        .add-movie-form button {
-            background: #3b5d8c;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 60px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .movie-list {
-            max-height: 350px;
-            overflow-y: auto;
-        }
-        .movie-item {
-            background: #0a1622;
-            padding: 12px 16px;
-            margin: 8px 0;
-            border-radius: 60px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .movie-item.highlight {
-            background: #f5b64230;
-            border-left: 6px solid #FFD966;
-            box-shadow: 0 0 15px rgba(255, 185, 50, 0.4);
-            transform: scale(1.01);
-            transition: 0.05s linear;
-        }
-        .movie-name {
-            flex: 1;
-            color: white;
-            font-weight: 500;
-            word-break: break-word;
-        }
-        .action-btn {
-            background: #2e5e3b;
-            border: none;
-            padding: 6px 16px;
-            border-radius: 40px;
-            color: white;
-            cursor: pointer;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-        .action-btn.watch { background: #2e7d32; }
-        .action-btn.consider { background: #7a5a2e; }
-        .action-btn.remove { background: #7a2e2e; }
-        .action-btn.back { background: #3a5e7a; }
-        
-        /* Spin Section */
-        .spin-section {
-            background: linear-gradient(135deg, #1a2a3a, #0f1a25);
-            border-radius: 48px;
-            padding: 20px;
-            margin-bottom: 24px;
-            text-align: center;
-            border: 2px solid #FFD966;
-        }
-        #spinBtn {
-            background: radial-gradient(circle at 30% 10%, #ffb347, #ff7e05);
-            border: none;
-            padding: 18px 40px;
-            font-size: 1.8rem;
-            font-weight: bold;
-            border-radius: 80px;
-            cursor: pointer;
-            box-shadow: 0 8px 0 #9b4b00;
-            transition: 0.05s linear;
-            width: 100%;
-            max-width: 300px;
-        }
-        #spinBtn:active { transform: translateY(4px); box-shadow: 0 4px 0 #9b4b00; }
-        .spin-status {
-            margin-top: 15px;
-            font-size: 1rem;
-            color: #FFD966;
-            min-height: 50px;
-        }
-        
-        /* Considered Section */
-        .considered-section {
-            background: #07121f;
-            border-radius: 32px;
-            padding: 20px;
-            margin-bottom: 24px;
-            border: 1px solid #7a6a3a;
-        }
-        .considered-title { color: #ffcf6e; }
-        
-        /* Watched Section */
-        .watched-section {
-            background: #07121f;
-            border-radius: 32px;
-            padding: 20px;
-            border: 1px solid #3a6e7a;
-        }
-        .watched-title { color: #6ec8ff; }
+    * {
+        box-sizing: border-box;
+        font-family: system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', sans-serif;
+    }
+    body {
+        background: linear-gradient(145deg, #0a0f1c 0%, #0f172a 100%);
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+    }
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    .passcode-screen {
+        background: rgba(15, 25, 45, 0.95);
+        backdrop-filter: blur(12px);
+        border-radius: 48px;
+        padding: 40px 24px;
+        max-width: 400px;
+        margin: 100px auto;
+        text-align: center;
+        border: 1px solid #FFD966;
+    }
+    .passcode-screen h2 { color: #FFD966; margin-bottom: 24px; }
+    .passcode-screen input {
+        width: 100%;
+        padding: 14px;
+        border-radius: 60px;
+        border: none;
+        background: #1e2a3e;
+        color: white;
+        font-size: 1rem;
+        text-align: center;
+        margin-bottom: 16px;
+    }
+    .passcode-screen button {
+        background: #FFB347;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 60px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .error-msg { color: #ff8888; margin-top: 12px; font-size: 0.85rem; }
+    
+    .main-app {
+        display: none;
+        background: rgba(15, 25, 45, 0.7);
+        backdrop-filter: blur(12px);
+        border-radius: 48px;
+        padding: 24px 20px 32px;
+        box-shadow: 0 25px 45px rgba(0,0,0,0.5);
+    }
+    h1 {
+        text-align: center;
+        font-size: 1.8rem;
+        margin: 0 0 8px;
+        background: linear-gradient(135deg, #FFD966, #FFB347);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+    .saturday-bar {
+        background: #07121f;
+        border-radius: 60px;
+        padding: 10px 20px;
+        margin-bottom: 24px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .saturday-bar label { color: #FFD966; font-weight: bold; }
+    #saturdayPicker {
+        background: #1e2a3e;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 40px;
+        border: 1px solid #FFD966;
+        cursor: pointer;
+        font-family: monospace;
+        font-size: 0.9rem;
+    }
+    .new-saturday-btn {
+        background: #2c3e5c;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 40px;
+        color: white;
+        cursor: pointer;
+    }
+    
+    .pool-section {
+        background: #07121f;
+        border-radius: 32px;
+        padding: 20px;
+        margin-bottom: 24px;
+        border: 1px solid #4a7a3a;
+    }
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: bold;
+        margin-bottom: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .pool-title { color: #7eff6e; }
+    .add-movie-form {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    .add-movie-form input {
+        flex: 2;
+        padding: 12px 16px;
+        border-radius: 60px;
+        border: none;
+        background: #1e2a3e;
+        color: white;
+        min-width: 150px;
+    }
+    .add-movie-form button {
+        background: #3b5d8c;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 60px;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .movie-list {
+        max-height: 350px;
+        overflow-y: auto;
+    }
+    .movie-item {
+        background: #0a1622;
+        padding: 12px 16px;
+        margin: 8px 0;
+        border-radius: 60px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .movie-item.highlight {
+        background: #f5b64230;
+        border-left: 6px solid #FFD966;
+        box-shadow: 0 0 15px rgba(255, 185, 50, 0.4);
+        transform: scale(1.01);
+        transition: 0.05s linear;
+    }
+    .movie-name {
+        flex: 1;
+        color: white;
+        font-weight: 500;
+        word-break: break-word;
+        min-width: 120px;
+    }
+    .action-btn {
+        background: #2e5e3b;
+        border: none;
+        padding: 6px 16px;
+        border-radius: 40px;
+        color: white;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: bold;
+        white-space: nowrap;
+    }
+    .action-btn.watch { background: #2e7d32; }
+    .action-btn.consider { background: #7a5a2e; }
+    .action-btn.remove { background: #7a2e2e; }
+    .action-btn.back { background: #3a5e7a; }
+    
+    .spin-section {
+        background: linear-gradient(135deg, #1a2a3a, #0f1a25);
+        border-radius: 48px;
+        padding: 20px;
+        margin-bottom: 24px;
+        text-align: center;
+        border: 2px solid #FFD966;
+    }
+    #spinBtn {
+        background: radial-gradient(circle at 30% 10%, #ffb347, #ff7e05);
+        border: none;
+        padding: 18px 40px;
+        font-size: 1.8rem;
+        font-weight: bold;
+        border-radius: 80px;
+        cursor: pointer;
+        box-shadow: 0 8px 0 #9b4b00;
+        transition: 0.05s linear;
+        width: 100%;
+        max-width: 300px;
+    }
+    #spinBtn:active { transform: translateY(4px); box-shadow: 0 4px 0 #9b4b00; }
+    .spin-status {
+        margin-top: 15px;
+        font-size: 1rem;
+        color: #FFD966;
+        min-height: 50px;
+    }
+    
+    .considered-section {
+        background: #07121f;
+        border-radius: 32px;
+        padding: 20px;
+        margin-bottom: 24px;
+        border: 1px solid #7a6a3a;
+    }
+    .considered-title { color: #ffcf6e; }
+    
+    .watched-section {
+        background: #07121f;
+        border-radius: 32px;
+        padding: 20px;
+        border: 1px solid #3a6e7a;
+    }
+    .watched-title { color: #6ec8ff; }
+    
+    /* FIXED: Watched item layout for long titles */
+    .watched-item {
+        background: #0a1622;
+        padding: 12px 16px;
+        margin: 8px 0;
+        border-radius: 40px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+    .watched-movie {
+        flex: 3;
+        min-width: 150px;
+        color: white;
+        word-break: break-word;
+        overflow-wrap: break-word;
+    }
+    .watched-date {
+        color: #FFD966;
+        font-family: monospace;
+        cursor: pointer;
+        text-decoration: underline dotted;
+        white-space: nowrap;
+    }
+    .edit-icon, .delete-icon, .move-up, .move-down {
+        background: none;
+        border: none;
+        color: #aaa;
+        cursor: pointer;
+        font-size: 1.1rem;
+        padding: 4px 8px;
+        white-space: nowrap;
+    }
+    .edit-icon:hover { color: #FFD966; }
+    .delete-icon:hover { color: #ff6e6e; }
+    .move-up, .move-down { font-size: 1.2rem; }
+    .move-up:hover, .move-down:hover { color: #FFD966; }
+    
+    .status-msg {
+        text-align: center;
+        color: #b9d0ff;
+        font-size: 0.8rem;
+        margin-top: 16px;
+        padding: 8px;
+    }
+    footer {
+        font-size: 0.7rem;
+        text-align: center;
+        color: #5a6e8c;
+        margin-top: 20px;
+    }
+    hr { border-color: #2a3a55; margin: 16px 0; }
+    
+    @media (max-width: 650px) {
+        .container { padding: 0; }
+        .main-app { padding: 16px; }
+        .movie-item { flex-direction: column; align-items: stretch; }
+        .action-btn { width: 100%; text-align: center; white-space: normal; }
         .watched-item {
-            background: #0a1622;
-            padding: 10px 16px;
-            margin: 6px 0;
-            border-radius: 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .watched-movie {
-            flex: 2;
-            color: white;
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
         }
         .watched-date {
-            color: #FFD966;
-            font-family: monospace;
-            cursor: pointer;
-            text-decoration: underline dotted;
-            min-width: 100px;
+            white-space: normal;
+            text-align: center;
         }
         .edit-icon, .delete-icon, .move-up, .move-down {
-            background: none;
-            border: none;
-            color: #aaa;
-            cursor: pointer;
-            font-size: 1.1rem;
-            padding: 4px 8px;
+            display: inline-block;
         }
-        .edit-icon:hover { color: #FFD966; }
-        .delete-icon:hover { color: #ff6e6e; }
-        .move-up, .move-down { font-size: 1.2rem; }
-        
-        .status-msg {
-            text-align: center;
-            color: #b9d0ff;
-            font-size: 0.8rem;
-            margin-top: 16px;
-            padding: 8px;
-        }
-        footer {
-            font-size: 0.7rem;
-            text-align: center;
-            color: #5a6e8c;
-            margin-top: 20px;
-        }
-        hr { border-color: #2a3a55; margin: 16px 0; }
-        
-        @media (max-width: 650px) {
-            .container { padding: 0; }
-            .main-app { padding: 16px; }
-            .movie-item { flex-direction: column; align-items: stretch; }
-            .action-btn { width: 100%; text-align: center; }
-            .watched-item { flex-direction: column; align-items: stretch; text-align: center; }
-        }
-        
-        /* Shake animation */
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-        .shake {
-            animation: shake 0.2s ease-in-out 3;
-        }
-    </style>
+    }
+    
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+    .shake {
+        animation: shake 0.2s ease-in-out 3;
+    }
+</style>
 </head>
 <body>
 <div class="container">
