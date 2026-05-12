@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Saturday Movie Spinner · Mario Party Style</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Helvetica Neue', monospace;
+        }
+        body {
+            background: linear-gradient(145deg, #0b1120 0%, #111827 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 700px;
+            width: 100%;
+            background: rgba(15, 25, 45, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 64px;
+            padding: 24px 20px 32px;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,215,0,0.2);
+        }
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+            margin: 0 0 8px 0;
+            background: linear-gradient(135deg, #FFD966, #FFB347);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+            font-weight: 700;
+        }
+        .sub {
+            text-align: center;
+            color: #9cb3df;
+            margin-bottom: 28px;
+            font-size: 0.85rem;
+            border-bottom: 1px dashed #2a3a60;
+            display: inline-block;
+            width: auto;
+            margin-left: auto;
+            margin-right: auto;
+            padding-bottom: 6px;
+        }
+        /* add movie area */
+        .add-section {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+        .add-section input {
+            flex: 3;
+            padding: 14px 18px;
+            border-radius: 60px;
+            border: none;
+            background: #1e2a3e;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.2s;
+            box-shadow: inset 0 1px 3px #00000030, 0 1px 0 #4a627a;
+        }
+        .add-section input:focus {
+            background: #25364f;
+            box-shadow: inset 0 1px 4px black, 0 0 0 2px #FFB347;
+        }
+        .add-section button {
+            flex: 1;
+            background: #2c3e5c;
+            border: none;
+            border-radius: 60px;
+            font-weight: bold;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 2px 6px black;
+        }
+        .add-section button:active { transform: scale(0.96); }
+        #addBtn { background: #3b5d8c; }
+        #addBtn:hover { background: #4c74a8; }
+
+        /* MARIO PARTY SELECTOR */
+        .selector-panel {
+            background: #07121f;
+            border-radius: 32px;
+            padding: 16px 12px;
+            margin-bottom: 28px;
+            border: 1px solid #FFD96650;
+            box-shadow: 0 12px 25px rgba(0,0,0,0.5);
+        }
+        .movie-list-container {
+            background: #010a15;
+            border-radius: 24px;
+            padding: 12px 8px;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        .movie-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            margin: 6px 0;
+            background: #0a1622;
+            border-radius: 60px;
+            font-size: 1.25rem;
+            font-weight: 500;
+            transition: all 0.1s ease;
+            border-left: 5px solid transparent;
+        }
+        .movie-item.highlight {
+            background: #f5b64230;
+            border-left: 5px solid #FFD966;
+            box-shadow: 0 0 8px #ffbf40;
+            transform: scale(1.01);
+        }
+        .arrow-symbol {
+            font-size: 2rem;
+            width: 48px;
+            text-align: center;
+            filter: drop-shadow(0 0 4px gold);
+        }
+        .movie-title {
+            flex: 1;
+            color: #f0f3fa;
+            letter-spacing: -0.2px;
+        }
+        .watch-btn {
+            background: #2e5e3b;
+            border: none;
+            border-radius: 40px;
+            padding: 6px 16px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.1s;
+            font-size: 0.8rem;
+        }
+        .watch-btn:active { transform: scale(0.94); background: #1f7a34; }
+
+        .spin-area {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0 20px;
+        }
+        #spinBtn {
+            background: radial-gradient(circle at 30% 10%, #ffb347, #ff7e05);
+            border: none;
+            padding: 14px 32px;
+            font-size: 1.7rem;
+            font-weight: bold;
+            border-radius: 80px;
+            color: #1e2a2f;
+            cursor: pointer;
+            width: 80%;
+            max-width: 260px;
+            font-family: monospace;
+            letter-spacing: 2px;
+            box-shadow: 0 6px 0 #9b4b00;
+            transition: 0.05s linear;
+        }
+        #spinBtn:active { transform: translateY(3px); box-shadow: 0 2px 0 #9b4b00; }
+
+        .watched-section {
+            margin-top: 24px;
+            border-top: 2px dashed #2e4a6e;
+            padding-top: 16px;
+        }
+        .watched-title {
+            font-weight: bold;
+            color: #ffcf8a;
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+        }
+        .watched-list {
+            background: #0C1622;
+            border-radius: 28px;
+            padding: 8px 12px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+        .watched-entry {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-bottom: 1px solid #1e3450;
+            color: #bdd4ff;
+            font-size: 0.9rem;
+        }
+        .clear-watched {
+            background: none;
+            border: 1px solid #ff8a7a;
+            color: #ffad9e;
+            border-radius: 30px;
+            padding: 5px 12px;
+            margin-top: 12px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        .status-msg {
+            text-align: center;
+            color: #b9d0ff;
+            font-size: 0.8rem;
+            margin-top: 12px;
+        }
+        footer {
+            font-size: 0.7rem;
+            text-align: center;
+            color: #5a6e8c;
+            margin-top: 24px;
+        }
+        button {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🍿 SATURDAY SPINNER 🎬</h1>
+    <div style="text-align:center"><span class="sub">mario party · movie roulette</span></div>
+
+    <div class="add-section">
+        <input type="text" id="movieInput" placeholder="Add a movie... (e.g. Dune 2)" autocomplete="off">
+        <button id="addBtn">➕ ADD</button>
+    </div>
+
+    <div class="selector-panel">
+        <div class="movie-list-container" id="movieListContainer">
+            <!-- dynamic movie list with arrow -->
+        </div>
+        <div class="spin-area">
+            <button id="spinBtn">🎲 SPIN 🎲</button>
+        </div>
+    </div>
+
+    <div class="watched-section">
+        <div class="watched-title">📜 WATCHED (Saturday nights)</div>
+        <div id="watchedList" class="watched-list">
+            <!-- watched entries appear here -->
+        </div>
+        <button id="clearWatchedBtn" class="clear-watched">🗑️ Clear watched history</button>
+    </div>
+    <div id="statusMsg" class="status-msg">✨ ready to spin — add some movies!</div>
+    <footer>shared via Firebase · auto-stamps saturday</footer>
+</div>
+
+<script>
+    // ========== 🔥 REPLACE THIS WITH YOUR FIREBASE CONFIG (from Firebase Console) ==========
+    const firebaseConfig = {
+        apiKey: "AIzaSyCTfeyF0TYe8QurlRLOjxc8EbNByzAh5fc",
+    authDomain: "movie-night-spinner.firebaseapp.com",
+    projectId: "movie-night-spinner",
+    storageBucket: "movie-night-spinner.firebasestorage.app",
+    messagingSenderId: "761257355395",
+    appId: "1:761257355395:web:bd822140a4a071a7b2d3b6"
+    };
+    // =======================================================================================
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Collections
+    const moviesRef = db.collection("movies");      // doc: { name, createdAt }
+    const watchedRef = db.collection("watched");    // doc: { name, dateWatched (string), timestamp }
+
+    // UI state
+    let currentMovies = [];          // [{ id, name }]
+    let currentHighlightIndex = 0;
+    let animationInterval = null;
+    let isSpinning = false;
+
+    // Helper: get next saturday (or most recent saturday), format YYYY-MM-DD
+    function getLastSaturdayFormatted() {
+        const today = new Date();
+        const day = today.getDay(); // 0 sun, 6 sat
+        const daysSinceSaturday = (day === 6) ? 0 : (day + 1) % 7;
+        const lastSaturday = new Date(today);
+        lastSaturday.setDate(today.getDate() - daysSinceSaturday);
+        return lastSaturday.toISOString().slice(0,10); // YYYY-MM-DD
+    }
+
+    // RENDER MOVIE LIST (with moving arrow)
+    function renderMovieList() {
+        const container = document.getElementById('movieListContainer');
+        if (!container) return;
+
+        if (currentMovies.length === 0) {
+            container.innerHTML = `<div style="text-align:center; padding:32px; color:#7e95b5;">🎞️ no movies yet — add some above!</div>`;
+            return;
+        }
+
+        let html = '';
+        currentMovies.forEach((movie, idx) => {
+            const isHighlight = (idx === currentHighlightIndex);
+            const arrowMarkup = isHighlight ? `<span class="arrow-symbol">👉🎬</span>` : `<span class="arrow-symbol" style="opacity:0.2">⏺</span>`;
+            html += `
+                <div class="movie-item ${isHighlight ? 'highlight' : ''}" data-id="${movie.id}" data-index="${idx}">
+                    ${arrowMarkup}
+                    <span class="movie-title">${escapeHtml(movie.name)}</span>
+                    <button class="watch-btn" data-id="${movie.id}" data-name="${escapeHtml(movie.name)}">✔️ Watched</button>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+
+        // attach watch events
+        document.querySelectorAll('.watch-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const movieId = btn.getAttribute('data-id');
+                const movieName = btn.getAttribute('data-name');
+                await markMovieAsWatched(movieId, movieName);
+            });
+        });
+    }
+
+    // mark watched + remove from active movies
+    async function markMovieAsWatched(movieId, movieName) {
+        if (isSpinning) {
+            showStatus("⏳ wait, spinner is still going!", true);
+            return;
+        }
+        const saturdayDate = getLastSaturdayFormatted();
+        try {
+            // add to watched collection
+            await watchedRef.add({
+                name: movieName,
+                dateWatched: saturdayDate,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            // delete from movies collection
+            await moviesRef.doc(movieId).delete();
+            showStatus(`✅ "${movieName}" watched on ${saturdayDate}!`);
+            await loadMoviesFromFirebase();  // refresh active movies
+            await renderWatchedList();
+        } catch (err) {
+            console.error(err);
+            showStatus("❌ error marking watched", true);
+        }
+    }
+
+    // load active movies from firestore
+    async function loadMoviesFromFirebase() {
+        try {
+            const snapshot = await moviesRef.orderBy("createdAt", "asc").get();
+            const movies = [];
+            snapshot.forEach(doc => {
+                movies.push({ id: doc.id, name: doc.data().name });
+            });
+            currentMovies = movies;
+            if (currentHighlightIndex >= currentMovies.length && currentMovies.length > 0) currentHighlightIndex = 0;
+            if (currentMovies.length === 0) currentHighlightIndex = -1;
+            renderMovieList();
+            if (currentMovies.length === 0) showStatus("➕ add a movie to start spinning!");
+            else showStatus(`🎥 ${currentMovies.length} movies ready. press SPIN!`);
+        } catch(e) { console.error(e); showStatus("🔥 firebase load error", true); }
+    }
+
+    // watched list render
+    async function renderWatchedList() {
+        const container = document.getElementById('watchedList');
+        try {
+            const snapshot = await watchedRef.orderBy("timestamp", "desc").get();
+            if (snapshot.empty) {
+                container.innerHTML = `<div style="text-align:center; color:#6b7f9f;">🍿 no movies watched yet. saturday night awaits</div>`;
+                return;
+            }
+            let html = '';
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                html += `<div class="watched-entry">
+                            <span>🎬 ${escapeHtml(data.name)}</span>
+                            <span>📅 ${data.dateWatched || 'saturday'}</span>
+                         </div>`;
+            });
+            container.innerHTML = html;
+        } catch(e) { console.error(e); }
+    }
+
+    // clear watched collection
+    async function clearWatchedHistory() {
+        if (confirm("🧹 erase all watched movie history? (won't affect upcoming movies)")) {
+            const snapshot = await watchedRef.get();
+            const batch = db.batch();
+            snapshot.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+            await renderWatchedList();
+            showStatus("watched history cleared");
+        }
+    }
+
+    // add new movie
+    async function addMovie() {
+        const input = document.getElementById('movieInput');
+        const rawName = input.value.trim();
+        if (!rawName) return;
+        const movieName = rawName.slice(0, 60);
+        try {
+            await moviesRef.add({
+                name: movieName,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            input.value = '';
+            await loadMoviesFromFirebase();
+            showStatus(`✨ "${movieName}" added to the wheel!`);
+        } catch(e) { showStatus("failed to add movie", true); }
+    }
+
+    // SPIN animation (Mario party fast scan + slow down)
+    async function spinToWin() {
+        if (isSpinning) {
+            showStatus("already spinning!", true);
+            return;
+        }
+        if (currentMovies.length === 0) {
+            showStatus("no movies to spin — add some movies first!", true);
+            return;
+        }
+
+        isSpinning = true;
+        const spinBtn = document.getElementById('spinBtn');
+        spinBtn.innerText = "🌀 SPINNING...";
+        const totalMovies = currentMovies.length;
+        let steps = 0;
+        const maxSteps = 28 + Math.floor(Math.random() * 18); // between 28~45 steps
+        let currentIdx = currentHighlightIndex;
+        let intervalTime = 80; // start fast
+        let stepCount = 0;
+
+        if (animationInterval) clearInterval(animationInterval);
+
+        animationInterval = setInterval(() => {
+            // move to next index (wrap)
+            currentIdx = (currentIdx + 1) % totalMovies;
+            currentHighlightIndex = currentIdx;
+            renderMovieList();
+            stepCount++;
+
+            // dynamic slowdown: increase delay gradually
+            if (stepCount > maxSteps - 12) intervalTime = 160;
+            else if (stepCount > maxSteps - 22) intervalTime = 110;
+            else if (stepCount > maxSteps - 30) intervalTime = 90;
+
+            if (stepCount >= maxSteps) {
+                clearInterval(animationInterval);
+                animationInterval = null;
+                // final landing highlight
+                const chosenMovie = currentMovies[currentHighlightIndex];
+                showStatus(`🎉 LANDED ON: "${chosenMovie.name}" !  click 'watched' to save for saturday 🎉`);
+                spinBtn.innerText = "🎲 SPIN 🎲";
+                isSpinning = false;
+                // auto-scroll to highlight maybe
+                document.querySelector('.movie-item.highlight')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, intervalTime);
+    }
+
+    function showStatus(msg, isError = false) {
+        const statusDiv = document.getElementById('statusMsg');
+        statusDiv.innerHTML = msg;
+        statusDiv.style.color = isError ? "#ffaa99" : "#b9d0ff";
+        setTimeout(() => {
+            if (document.getElementById('statusMsg')?.innerHTML === msg)
+                statusDiv.style.color = "#b9d0ff";
+        }, 3000);
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // event binding & initial load
+    document.getElementById('addBtn').addEventListener('click', addMovie);
+    document.getElementById('spinBtn').addEventListener('click', spinToWin);
+    document.getElementById('clearWatchedBtn').addEventListener('click', clearWatchedHistory);
+    document.getElementById('movieInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') addMovie(); });
+
+    // load everything
+    async function init() {
+        await loadMoviesFromFirebase();
+        await renderWatchedList();
+        if (currentMovies.length > 0) currentHighlightIndex = 0;
+        renderMovieList();
+        showStatus("🔥 firebase connected! movies are shared with friends.");
+    }
+    init();
+</script>
+</body>
+</html>
