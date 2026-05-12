@@ -413,32 +413,19 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     
-    // Collections
     let currentSaturdayId = null;
-    let poolMovies = [];        // { id, name }
-    let consideredMovies = [];  // { id, name }
-    let watchedMovies = [];     // { id, name, date, order }
+    let poolMovies = [];
+    let consideredMovies = [];
+    let watchedMovies = [];
     let currentHighlightIndex = 0;
     let isSpinning = false;
     let spinInterval = null;
     
-    // Helper: format MM-DD-YYYY
     function formatDateForDisplay(dateStr) {
         if (!dateStr || dateStr === "N/A") return "N/A";
-        // if it's YYYY-MM-DD, convert to MM-DD-YYYY
         if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
             const [year, month, day] = dateStr.split('-');
             return `${month}-${day}-${year}`;
-        }
-        return dateStr;
-    }
-    
-    function formatDateForStorage(dateStr) {
-        if (!dateStr || dateStr === "N/A") return "N/A";
-        // if it's MM-DD-YYYY, convert to YYYY-MM-DD for storage
-        if (dateStr.match(/^\d{2}-\d{2}-\d{4}$/)) {
-            const [month, day, year] = dateStr.split('-');
-            return `${year}-${month}-${day}`;
         }
         return dateStr;
     }
@@ -463,7 +450,6 @@
         return `${month}-${date}-${year}`;
     }
     
-    // Load Saturdays dropdown
     async function loadSaturdays() {
         const snapshot = await db.collection("saturdays").orderBy("date", "desc").get();
         const dropdown = document.getElementById("saturdayPicker");
@@ -480,7 +466,7 @@
         saturdays.forEach(sat => {
             const option = document.createElement("option");
             option.value = sat.id;
-            option.textContent = sat.date; // Already MM-DD-YYYY
+            option.textContent = sat.date;
             dropdown.appendChild(option);
         });
         if (!currentSaturdayId || !saturdays.find(s => s.id === currentSaturdayId)) {
@@ -489,54 +475,85 @@
         dropdown.value = currentSaturdayId;
     }
     
-    // Load all data
     async function loadAllData() {
-        // Load pool
-        const poolSnap = await db.collection("moviePool").orderBy("createdAt", "asc").get();
-        poolMovies = [];
-        poolSnap.forEach(doc => {
-            poolMovies.push({ id: doc.id, name: doc.data().name });
-        });
-        
-        // Load considered
-        const consideredSnap = await db.collection("considered").orderBy("createdAt", "asc").get();
-        consideredMovies = [];
-        consideredSnap.forEach(doc => {
-            consideredMovies.push({ id: doc.id, name: doc.data().name });
-        });
-        
-        // Load watched (with order)
-        const watchedSnap = await db.collection("watched").orderBy("order", "asc").get();
-        watchedMovies = [];
-        watchedSnap.forEach(doc => {
-            watchedMovies.push({
-                id: doc.id,
-                name: doc.data().name,
-                date: doc.data().date,
-                order: doc.data().order
+        try {
+            const poolSnap = await db.collection("moviePool").orderBy("createdAt", "asc").get();
+            poolMovies = [];
+            poolSnap.forEach(doc => {
+                poolMovies.push({ id: doc.id, name: doc.data().name });
             });
-        });
-        
-        renderPool();
-        renderConsidered();
-        renderWatched();
-        
-        document.getElementById("poolCount").innerText = `${poolMovies.length} movies`;
-        document.getElementById("consideredCount").innerText = `${consideredMovies.length} movies`;
-        document.getElementById("watchedCount").innerText = `${watchedMovies.length} movies`;
-        
-        // Show "move all" button if pool has items
-        const moveBtn = document.getElementById("moveAllToConsideredContainer");
-        if (poolMovies.length > 0) moveBtn.style.display = "block";
-        else moveBtn.style.display = "none";
+            
+            const consideredSnap = await db.collection("considered").orderBy("createdAt", "asc").get();
+            consideredMovies = [];
+            consideredSnap.forEach(doc => {
+                consideredMovies.push({ id: doc.id, name: doc.data().name });
+            });
+            
+            const watchedSnap = await db.collection("watched").orderBy("order", "asc").get();
+            watchedMovies = [];
+            watchedSnap.forEach(doc => {
+                watchedMovies.push({
+                    id: doc.id,
+                    name: doc.data().name,
+                    date: doc.data().date,
+                    order: doc.data().order
+                });
+            });
+            
+            renderPool();
+            renderConsidered();
+            renderWatched();
+            
+            document.getElementById("poolCount").innerText = `${poolMovies.length} movies`;
+            document.getElementById("consideredCount").innerText = `${consideredMovies.length} movies`;
+            document.getElementById("watchedCount").innerText = `${watchedMovies.length} movies`;
+            
+            const moveBtn = document.getElementById("moveAllToConsideredContainer");
+            if (poolMovies.length > 0) moveBtn.style.display = "block";
+            else moveBtn.style.display = "none";
+        } catch (e) {
+            console.error("Load error:", e);
+            showStatus("Error loading data: " + e.message, true);
+        }
     }
     
-    // Check for duplicate by name
     function isDuplicate(movieName, list) {
         return list.some(m => m.name.toLowerCase() === movieName.toLowerCase());
     }
     
-    // Render Pool
+    // EDIT TITLE FUNCTION (new)
+    async function editMovieTitle(listType, movieId, currentName) {
+        const newName = prompt(`Edit movie title:\nCurrent: "${currentName}"\n\nEnter new title:`, currentName);
+        if (!newName || newName.trim() === currentName) return;
+        const trimmedName = newName.trim();
+        if (trimmedName.length === 0) return;
+        
+        // Check for duplicates in the same list
+        let targetList;
+        if (listType === 'pool') targetList = poolMovies;
+        else if (listType === 'considered') targetList = consideredMovies;
+        else targetList = watchedMovies;
+        
+        if (isDuplicate(trimmedName, targetList.filter(m => m.id !== movieId))) {
+            showStatus(`⚠️ "${trimmedName}" already exists in this list!`, true);
+            return;
+        }
+        
+        try {
+            let collectionName;
+            if (listType === 'pool') collectionName = "moviePool";
+            else if (listType === 'considered') collectionName = "considered";
+            else collectionName = "watched";
+            
+            await db.collection(collectionName).doc(movieId).update({ name: trimmedName });
+            showStatus(`✏️ Renamed "${currentName}" → "${trimmedName}"`);
+            await loadAllData();
+        } catch (e) {
+            console.error("Edit error:", e);
+            showStatus("Error editing title: " + e.message, true);
+        }
+    }
+    
     function renderPool() {
         const container = document.getElementById("poolList");
         if (poolMovies.length === 0) {
@@ -549,15 +566,17 @@
             html += `
                 <div class="movie-item ${isHighlight ? 'highlight' : ''}">
                     <span class="movie-name">${escapeHtml(movie.name)}</span>
-                    <button class="action-btn watch" onclick="markWatchedFromPool('${movie.id}', '${escapeHtml(movie.name)}')">🎬 Mark Watched</button>
-                    <button class="action-btn consider" onclick="moveToConsidered('${movie.id}', '${escapeHtml(movie.name)}')">📋 Move to Considered</button>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="action-btn edit" onclick="editMovieTitle('pool', '${movie.id}', '${escapeHtml(movie.name)}')">✏️ Edit</button>
+                        <button class="action-btn watch" onclick="markWatchedFromPool('${movie.id}', '${escapeHtml(movie.name)}')">🎬 Watched</button>
+                        <button class="action-btn consider" onclick="moveToConsidered('${movie.id}', '${escapeHtml(movie.name)}')">📋 Consider</button>
+                    </div>
                 </div>
             `;
         });
         container.innerHTML = html;
     }
     
-    // Render Considered
     function renderConsidered() {
         const container = document.getElementById("consideredList");
         if (consideredMovies.length === 0) {
@@ -569,15 +588,17 @@
             html += `
                 <div class="movie-item">
                     <span class="movie-name">${escapeHtml(movie.name)}</span>
-                    <button class="action-btn" onclick="moveToWatchedFromConsidered('${movie.id}', '${escapeHtml(movie.name)}')">✅ Move to Watched</button>
-                    <button class="action-btn back" onclick="moveBackToPool('${movie.id}', '${escapeHtml(movie.name)}')">↩️ Back to Pool</button>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="action-btn edit" onclick="editMovieTitle('considered', '${movie.id}', '${escapeHtml(movie.name)}')">✏️ Edit</button>
+                        <button class="action-btn" onclick="moveToWatchedFromConsidered('${movie.id}', '${escapeHtml(movie.name)}')">✅ Move to Watched</button>
+                        <button class="action-btn back" onclick="moveBackToPool('${movie.id}', '${escapeHtml(movie.name)}')">↩️ Back to Pool</button>
+                    </div>
                 </div>
             `;
         });
         container.innerHTML = html;
     }
     
-    // Render Watched (with edit, delete, and N/A reorder arrows)
     function renderWatched() {
         const container = document.getElementById("watchedList");
         if (watchedMovies.length === 0) {
@@ -591,24 +612,25 @@
             html += `
                 <div class="watched-item" data-id="${movie.id}">
                     <span class="watched-movie">✅ ${escapeHtml(movie.name)}</span>
-                    <span class="watched-date" onclick="editWatchedDate('${movie.id}', '${escapeHtml(movie.name)}', '${movie.date}')">📅 ${displayDate}</span>
-                    <button class="edit-icon" onclick="editWatchedDate('${movie.id}', '${escapeHtml(movie.name)}', '${movie.date}')">✏️</button>
-                    <button class="delete-icon" onclick="deleteWatched('${movie.id}', '${escapeHtml(movie.name)}')">🗑️</button>
-                    ${isNA ? `
-                        <button class="move-up" onclick="reorderWatched('${movie.id}', 'up', ${idx})">↑</button>
-                        <button class="move-down" onclick="reorderWatched('${movie.id}', 'down', ${idx})">↓</button>
-                    ` : ''}
+                    <span class="watched-date" onclick="editWatchedDate('${movie.id}', '${escapeHtml(movie.name)}', '${movie.date || "N/A"}')">📅 ${displayDate}</span>
+                    <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                        <button class="edit-icon" onclick="editMovieTitle('watched', '${movie.id}', '${escapeHtml(movie.name)}')" title="Edit title">✏️</button>
+                        <button class="edit-icon" onclick="editWatchedDate('${movie.id}', '${escapeHtml(movie.name)}', '${movie.date || "N/A"}')" title="Edit date">📅</button>
+                        <button class="delete-icon" onclick="deleteWatched('${movie.id}', '${escapeHtml(movie.name)}')" title="Delete">🗑️</button>
+                        ${isNA ? `
+                            <button class="move-up" onclick="reorderWatched('${movie.id}', 'up', ${idx})" title="Move up">↑</button>
+                            <button class="move-down" onclick="reorderWatched('${movie.id}', 'down', ${idx})" title="Move down">↓</button>
+                        ` : ''}
+                    </div>
                 </div>
             `;
         });
         container.innerHTML = html;
     }
     
-    // Mark watched from pool (with optional move all others)
     async function markWatchedFromPool(movieId, movieName) {
-        const dateToUse = currentSaturdayId; // already MM-DD-YYYY from saturdays list
+        const dateToUse = currentSaturdayId;
         try {
-            // Add to watched
             const newOrder = watchedMovies.length;
             await db.collection("watched").add({
                 name: movieName,
@@ -616,14 +638,12 @@
                 order: newOrder,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
-            // Remove from pool
             await db.collection("moviePool").doc(movieId).delete();
             showStatus(`✅ "${movieName}" watched on ${dateToUse}!`);
             await loadAllData();
             
-            // Ask if they want to move remaining to considered
             if (poolMovies.length > 0) {
-                const moveRemaining = confirm(`🎬 Move the remaining ${poolMovies.length} movie(s) to Considered list?\n\nThey'll be saved for later consideration.`);
+                const moveRemaining = confirm(`🎬 Move the remaining ${poolMovies.length} movie(s) to Considered list?`);
                 if (moveRemaining) {
                     for (let movie of poolMovies) {
                         await db.collection("considered").add({
@@ -637,11 +657,11 @@
                 }
             }
         } catch(e) {
-            showStatus("Error marking watched", true);
+            console.error("Mark watched error:", e);
+            showStatus("Error marking watched: " + e.message, true);
         }
     }
     
-    // Move from pool to considered
     window.moveToConsidered = async function(movieId, movieName) {
         try {
             await db.collection("considered").add({
@@ -651,10 +671,12 @@
             await db.collection("moviePool").doc(movieId).delete();
             showStatus(`📋 "${movieName}" moved to Considered.`);
             await loadAllData();
-        } catch(e) { showStatus("Error", true); }
+        } catch(e) { 
+            console.error(e);
+            showStatus("Error: " + e.message, true); 
+        }
     };
     
-    // Move from considered to watched (with date prompt)
     window.moveToWatchedFromConsidered = async function(consideredId, movieName) {
         const dateInput = prompt(`📅 Enter date for "${movieName}" (MM-DD-YYYY) or type "N/A":`, getTodayFormatted());
         if (!dateInput) return;
@@ -674,10 +696,12 @@
             await db.collection("considered").doc(consideredId).delete();
             showStatus(`✅ "${movieName}" added to Watched with date ${finalDate}`);
             await loadAllData();
-        } catch(e) { showStatus("Error", true); }
+        } catch(e) { 
+            console.error(e);
+            showStatus("Error: " + e.message, true); 
+        }
     };
     
-    // Move back from considered to pool
     window.moveBackToPool = async function(consideredId, movieName) {
         try {
             await db.collection("moviePool").add({
@@ -687,12 +711,15 @@
             await db.collection("considered").doc(consideredId).delete();
             showStatus(`🎯 "${movieName}" moved back to Pool.`);
             await loadAllData();
-        } catch(e) { showStatus("Error", true); }
+        } catch(e) { 
+            console.error(e);
+            showStatus("Error: " + e.message, true); 
+        }
     };
     
-    // Edit watched date
     window.editWatchedDate = async function(watchedId, movieName, currentDate) {
-        const newDate = prompt(`Edit date for "${movieName}"\nCurrent: ${formatDateForDisplay(currentDate)}\n\nEnter MM-DD-YYYY or "N/A":`, formatDateForDisplay(currentDate));
+        const displayCurrent = formatDateForDisplay(currentDate);
+        const newDate = prompt(`Edit date for "${movieName}"\nCurrent: ${displayCurrent}\n\nEnter MM-DD-YYYY or "N/A":`, displayCurrent);
         if (!newDate) return;
         let finalDate = newDate.trim().toUpperCase();
         if (finalDate !== "N/A" && !finalDate.match(/^\d{2}-\d{2}-\d{4}$/)) {
@@ -703,21 +730,25 @@
             await db.collection("watched").doc(watchedId).update({ date: finalDate });
             showStatus(`📅 Updated "${movieName}" to ${finalDate}`);
             await loadAllData();
-        } catch(e) { showStatus("Error updating date", true); }
+        } catch(e) {
+            console.error("Date edit error:", e);
+            showStatus("Error updating date: " + e.message, true);
+        }
     };
     
-    // Delete watched
     window.deleteWatched = async function(watchedId, movieName) {
-        const confirm = window.confirm(`🗑️ Remove "${movieName}" from Watched history?`);
-        if (!confirm) return;
+        const confirmDelete = window.confirm(`🗑️ Remove "${movieName}" from Watched history permanently?`);
+        if (!confirmDelete) return;
         try {
             await db.collection("watched").doc(watchedId).delete();
             showStatus(`Removed "${movieName}" from history.`);
             await loadAllData();
-        } catch(e) { showStatus("Error deleting", true); }
+        } catch(e) {
+            console.error("Delete error:", e);
+            showStatus("Error deleting: " + e.message, true);
+        }
     };
     
-    // Reorder N/A movies
     window.reorderWatched = async function(watchedId, direction, currentIndex) {
         const naMovies = watchedMovies.filter(m => m.date === "N/A");
         const currentNaIndex = naMovies.findIndex(m => m.id === watchedId);
@@ -738,7 +769,6 @@
         showStatus("Reordered N/A movies");
     };
     
-    // Add direct to watched
     async function addDirectToWatched() {
         const input = document.getElementById("directWatchedInput");
         const movieName = input.value.trim();
@@ -763,10 +793,12 @@
             document.getElementById("naCheckbox").checked = false;
             showStatus(`✅ "${movieName}" added to Watched (${dateToUse})`);
             await loadAllData();
-        } catch(e) { showStatus("Error adding to watched", true); }
+        } catch(e) { 
+            console.error(e);
+            showStatus("Error: " + e.message, true); 
+        }
     }
     
-    // Add to pool
     async function addToPool() {
         const input = document.getElementById("movieInput");
         const movieName = input.value.trim();
@@ -789,14 +821,16 @@
             input.value = "";
             showStatus(`➕ "${movieName}" added to Pool`);
             await loadAllData();
-        } catch(e) { showStatus("Error adding to pool", true); }
+        } catch(e) { 
+            console.error(e);
+            showStatus("Error: " + e.message, true); 
+        }
     }
     
-    // Move all remaining pool to considered
     async function moveAllToConsidered() {
         if (poolMovies.length === 0) return;
-        const confirm = window.confirm(`Move all ${poolMovies.length} movie(s) from Pool to Considered?`);
-        if (!confirm) return;
+        const confirmMove = window.confirm(`Move all ${poolMovies.length} movie(s) from Pool to Considered?`);
+        if (!confirmMove) return;
         try {
             for (let movie of poolMovies) {
                 await db.collection("considered").add({
@@ -807,10 +841,12 @@
             }
             showStatus(`📦 Moved ${poolMovies.length} movies to Considered.`);
             await loadAllData();
-        } catch(e) { showStatus("Error moving all", true); }
+        } catch(e) { 
+            console.error(e);
+            showStatus("Error: " + e.message, true); 
+        }
     }
     
-    // SPIN FUNCTION with dramatic effect
     async function spin() {
         if (isSpinning) { showStatus("Already spinning!", true); return; }
         if (poolMovies.length === 0) { showStatus("No movies in pool! Add some first.", true); return; }
@@ -822,8 +858,8 @@
         
         const totalMovies = poolMovies.length;
         let steps = 0;
-        const maxSteps = 40 + Math.floor(Math.random() * 25); // longer spin for drama
-        let intervalTime = 50; // start fast
+        const maxSteps = 40 + Math.floor(Math.random() * 25);
+        let intervalTime = 50;
         
         if (spinInterval) clearInterval(spinInterval);
         
@@ -832,7 +868,6 @@
             renderPool();
             steps++;
             
-            // Dramatic slowdown
             if (steps > maxSteps - 18) intervalTime = 180;
             else if (steps > maxSteps - 28) intervalTime = 130;
             else if (steps > maxSteps - 36) intervalTime = 90;
@@ -843,17 +878,15 @@
                 spinInterval = null;
                 const chosenMovie = poolMovies[currentHighlightIndex];
                 
-                // Screen shake effect
                 document.querySelector('.spin-section').classList.add('shake');
                 setTimeout(() => {
                     document.querySelector('.spin-section').classList.remove('shake');
                 }, 600);
                 
-                spinStatus.innerHTML = `🎉 LANDED ON: "${chosenMovie.name}"! 🎉<br>Click "Mark Watched" on the movie above.`;
+                spinStatus.innerHTML = `🎉 LANDED ON: "${chosenMovie.name}"! 🎉<br>Click "Watched" on the movie above.`;
                 spinBtn.innerText = "🎬 SPIN TO PICK 🎬";
                 isSpinning = false;
                 
-                // Scroll to highlight
                 setTimeout(() => {
                     const highlighted = document.querySelector('.movie-item.highlight');
                     if (highlighted) highlighted.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -862,7 +895,6 @@
         }, intervalTime);
     }
     
-    // Create new Saturday
     async function createNewSaturday() {
         const newDate = prompt("Enter Saturday date (MM-DD-YYYY):", getThisSaturdayFormatted());
         if (!newDate) return;
@@ -874,7 +906,10 @@
             await db.collection("saturdays").doc(newDate).set({ date: newDate });
             await loadSaturdays();
             showStatus(`📅 Created Saturday ${newDate}`);
-        } catch(e) { showStatus("Error creating Saturday", true); }
+        } catch(e) { 
+            console.error(e);
+            showStatus("Error: " + e.message, true); 
+        }
     }
     
     function showStatus(msg, isError = false) {
@@ -897,7 +932,16 @@
         });
     }
     
-    // Passcode logic
+    // Make functions global for onclick handlers
+    window.editMovieTitle = editMovieTitle;
+    window.markWatchedFromPool = markWatchedFromPool;
+    window.moveToConsidered = moveToConsidered;
+    window.moveToWatchedFromConsidered = moveToWatchedFromConsidered;
+    window.moveBackToPool = moveBackToPool;
+    window.editWatchedDate = editWatchedDate;
+    window.deleteWatched = deleteWatched;
+    window.reorderWatched = reorderWatched;
+    
     function checkPasscode() {
         const stored = sessionStorage.getItem("movieNightUnlocked");
         if (stored === "true") {
@@ -925,7 +969,6 @@
     async function initApp() {
         await loadSaturdays();
         await loadAllData();
-        // Event listeners
         document.getElementById("addToPoolBtn").onclick = addToPool;
         document.getElementById("addDirectToWatchedBtn").onclick = addDirectToWatched;
         document.getElementById("spinBtn").onclick = spin;
