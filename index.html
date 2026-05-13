@@ -3,319 +3,332 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Saturday Movie Night · Ultimate Tracker</title>
+    <title>NERD HERD · Saturday Movie Night</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
-    * {
-        box-sizing: border-box;
-        font-family: system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', sans-serif;
-    }
-    body {
-        background: linear-gradient(145deg, #0a0f1c 0%, #0f172a 100%);
-        min-height: 100vh;
-        margin: 0;
-        padding: 20px;
-    }
-    .container {
-        max-width: 900px;
-        margin: 0 auto;
-    }
-    .passcode-screen {
-        background: rgba(15, 25, 45, 0.95);
-        backdrop-filter: blur(12px);
-        border-radius: 48px;
-        padding: 40px 24px;
-        max-width: 400px;
-        margin: 100px auto;
-        text-align: center;
-        border: 1px solid #FFD966;
-    }
-    .passcode-screen h2 { color: #FFD966; margin-bottom: 24px; }
-    .passcode-screen input {
-        width: 100%;
-        padding: 14px;
-        border-radius: 60px;
-        border: none;
-        background: #1e2a3e;
-        color: white;
-        font-size: 1rem;
-        text-align: center;
-        margin-bottom: 16px;
-    }
-    .passcode-screen button {
-        background: #FFB347;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 60px;
-        font-weight: bold;
-        cursor: pointer;
-    }
-    .error-msg { color: #ff8888; margin-top: 12px; font-size: 0.85rem; }
-    
-    .main-app {
-        display: none;
-        background: rgba(15, 25, 45, 0.7);
-        backdrop-filter: blur(12px);
-        border-radius: 48px;
-        padding: 24px 20px 32px;
-        box-shadow: 0 25px 45px rgba(0,0,0,0.5);
-    }
-    h1 {
-        text-align: center;
-        font-size: 1.8rem;
-        margin: 0 0 8px;
-        background: linear-gradient(135deg, #FFD966, #FFB347);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-    }
-    .saturday-bar {
-        background: #07121f;
-        border-radius: 60px;
-        padding: 10px 20px;
-        margin-bottom: 24px;
-        display: flex;
-        gap: 12px;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-    .saturday-bar label { color: #FFD966; font-weight: bold; }
-    #saturdayPicker {
-        background: #1e2a3e;
-        color: white;
-        padding: 8px 16px;
-        border-radius: 40px;
-        border: 1px solid #FFD966;
-        cursor: pointer;
-        font-family: monospace;
-        font-size: 0.9rem;
-    }
-    .new-saturday-btn {
-        background: #2c3e5c;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 40px;
-        color: white;
-        cursor: pointer;
-    }
-    
-    .pool-section {
-        background: #07121f;
-        border-radius: 32px;
-        padding: 20px;
-        margin-bottom: 24px;
-        border: 1px solid #4a7a3a;
-    }
-    .section-title {
-        font-size: 1.3rem;
-        font-weight: bold;
-        margin-bottom: 16px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-    .pool-title { color: #7eff6e; }
-    .add-movie-form {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
-    }
-    .add-movie-form input {
-        flex: 2;
-        padding: 12px 16px;
-        border-radius: 60px;
-        border: none;
-        background: #1e2a3e;
-        color: white;
-        min-width: 150px;
-    }
-    .add-movie-form button {
-        background: #3b5d8c;
-        border: none;
-        padding: 12px 20px;
-        border-radius: 60px;
-        color: white;
-        font-weight: bold;
-        cursor: pointer;
-    }
-    .movie-list {
-        max-height: 350px;
-        overflow-y: auto;
-    }
-    .movie-item {
-        background: #0a1622;
-        padding: 12px 16px;
-        margin: 8px 0;
-        border-radius: 60px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-        flex-wrap: wrap;
-    }
-    .movie-item.highlight {
-        background: #f5b64230;
-        border-left: 6px solid #FFD966;
-        box-shadow: 0 0 15px rgba(255, 185, 50, 0.4);
-        transform: scale(1.01);
-        transition: 0.05s linear;
-    }
-    .movie-name {
-        flex: 1;
-        color: white;
-        font-weight: 500;
-        word-break: break-word;
-        min-width: 120px;
-    }
-    .action-btn {
-        background: #2e5e3b;
-        border: none;
-        padding: 6px 16px;
-        border-radius: 40px;
-        color: white;
-        cursor: pointer;
-        font-size: 0.8rem;
-        font-weight: bold;
-        white-space: nowrap;
-    }
-    .action-btn.watch { background: #2e7d32; }
-    .action-btn.consider { background: #7a5a2e; }
-    .action-btn.remove { background: #7a2e2e; }
-    .action-btn.back { background: #3a5e7a; }
-    
-    .spin-section {
-        background: linear-gradient(135deg, #1a2a3a, #0f1a25);
-        border-radius: 48px;
-        padding: 20px;
-        margin-bottom: 24px;
-        text-align: center;
-        border: 2px solid #FFD966;
-    }
-    #spinBtn {
-        background: radial-gradient(circle at 30% 10%, #ffb347, #ff7e05);
-        border: none;
-        padding: 18px 40px;
-        font-size: 1.8rem;
-        font-weight: bold;
-        border-radius: 80px;
-        cursor: pointer;
-        box-shadow: 0 8px 0 #9b4b00;
-        transition: 0.05s linear;
-        width: 100%;
-        max-width: 300px;
-    }
-    #spinBtn:active { transform: translateY(4px); box-shadow: 0 4px 0 #9b4b00; }
-    .spin-status {
-        margin-top: 15px;
-        font-size: 1rem;
-        color: #FFD966;
-        min-height: 50px;
-    }
-    
-    .considered-section {
-        background: #07121f;
-        border-radius: 32px;
-        padding: 20px;
-        margin-bottom: 24px;
-        border: 1px solid #7a6a3a;
-    }
-    .considered-title { color: #ffcf6e; }
-    
-    .watched-section {
-        background: #07121f;
-        border-radius: 32px;
-        padding: 20px;
-        border: 1px solid #3a6e7a;
-    }
-    .watched-title { color: #6ec8ff; }
-    
-    /* FIXED: Watched item layout for long titles */
-    .watched-item {
-        background: #0a1622;
-        padding: 12px 16px;
-        margin: 8px 0;
-        border-radius: 40px;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 8px;
-    }
-    .watched-movie {
-        flex: 3;
-        min-width: 150px;
-        color: white;
-        word-break: break-word;
-        overflow-wrap: break-word;
-    }
-    .watched-date {
-        color: #FFD966;
-        font-family: monospace;
-        cursor: pointer;
-        text-decoration: underline dotted;
-        white-space: nowrap;
-    }
-    .edit-icon, .delete-icon, .move-up, .move-down {
-        background: none;
-        border: none;
-        color: #aaa;
-        cursor: pointer;
-        font-size: 1.1rem;
-        padding: 4px 8px;
-        white-space: nowrap;
-    }
-    .edit-icon:hover { color: #FFD966; }
-    .delete-icon:hover { color: #ff6e6e; }
-    .move-up, .move-down { font-size: 1.2rem; }
-    .move-up:hover, .move-down:hover { color: #FFD966; }
-    
-    .status-msg {
-        text-align: center;
-        color: #b9d0ff;
-        font-size: 0.8rem;
-        margin-top: 16px;
-        padding: 8px;
-    }
-    footer {
-        font-size: 0.7rem;
-        text-align: center;
-        color: #5a6e8c;
-        margin-top: 20px;
-    }
-    hr { border-color: #2a3a55; margin: 16px 0; }
-    
-    @media (max-width: 650px) {
-        .container { padding: 0; }
-        .main-app { padding: 16px; }
-        .movie-item { flex-direction: column; align-items: stretch; }
-        .action-btn { width: 100%; text-align: center; white-space: normal; }
-        .watched-item {
-            flex-direction: column;
-            align-items: stretch;
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background: linear-gradient(145deg, #0a0f1c 0%, #0f172a 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+        /* Passcode screen */
+        .passcode-screen {
+            background: rgba(15, 25, 45, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 48px;
+            padding: 40px 24px;
+            max-width: 400px;
+            margin: 100px auto;
             text-align: center;
+            border: 1px solid #FFD966;
+        }
+        .passcode-screen h2 { color: #FFD966; margin-bottom: 24px; }
+        .passcode-screen input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 60px;
+            border: none;
+            background: #1e2a3e;
+            color: white;
+            font-size: 1rem;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .passcode-screen button {
+            background: #FFB347;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 60px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .error-msg { color: #ff8888; margin-top: 12px; font-size: 0.85rem; }
+        
+        /* Main App */
+        .main-app {
+            display: none;
+            background: rgba(15, 25, 45, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 48px;
+            padding: 24px 20px 32px;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.5);
+        }
+        
+        /* NERD HERD Header */
+        .nerd-herd {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: white;
+            letter-spacing: 4px;
+            margin: 0 0 10px 0;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+        
+        /* GIF Container */
+        .gif-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .gif-container iframe, .gif-container div {
+            max-width: 100%;
+            border-radius: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 1.5rem;
+            margin: 0 0 8px;
+            background: linear-gradient(135deg, #FFD966, #FFB347);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .saturday-bar {
+            background: #07121f;
+            border-radius: 60px;
+            padding: 10px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .saturday-bar label { color: #FFD966; font-weight: bold; }
+        #saturdayPicker {
+            background: #1e2a3e;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 40px;
+            border: 1px solid #FFD966;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        .new-saturday-btn {
+            background: #2c3e5c;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 40px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .pool-section {
+            background: #07121f;
+            border-radius: 32px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid #4a7a3a;
+        }
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .pool-title { color: #7eff6e; }
+        .add-movie-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .add-movie-form input {
+            flex: 2;
+            padding: 12px 16px;
+            border-radius: 60px;
+            border: none;
+            background: #1e2a3e;
+            color: white;
+            min-width: 150px;
+        }
+        .add-movie-form button {
+            background: #3b5d8c;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 60px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .movie-list {
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        .movie-item {
+            background: #0a1622;
+            padding: 12px 16px;
+            margin: 8px 0;
+            border-radius: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .movie-item.highlight {
+            background: #f5b64230;
+            border-left: 6px solid #FFD966;
+            box-shadow: 0 0 15px rgba(255, 185, 50, 0.4);
+            transform: scale(1.01);
+            transition: 0.05s linear;
+        }
+        .movie-name {
+            flex: 1;
+            color: white;
+            font-weight: 500;
+            word-break: break-word;
+            min-width: 120px;
+        }
+        .action-btn {
+            background: #2e5e3b;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 40px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .action-btn.watch { background: #2e7d32; }
+        .action-btn.consider { background: #7a5a2e; }
+        .action-btn.remove { background: #7a2e2e; }
+        .action-btn.back { background: #3a5e7a; }
+        
+        .spin-section {
+            background: linear-gradient(135deg, #1a2a3a, #0f1a25);
+            border-radius: 48px;
+            padding: 20px;
+            margin-bottom: 24px;
+            text-align: center;
+            border: 2px solid #FFD966;
+        }
+        #spinBtn {
+            background: radial-gradient(circle at 30% 10%, #ffb347, #ff7e05);
+            border: none;
+            padding: 16px 32px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 80px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #9b4b00;
+            transition: 0.05s linear;
+            width: 100%;
+            max-width: 280px;
+            white-space: nowrap;
+        }
+        @media (max-width: 480px) {
+            #spinBtn { font-size: 1.2rem; padding: 12px 20px; white-space: normal; }
+        }
+        #spinBtn:active { transform: translateY(4px); box-shadow: 0 2px 0 #9b4b00; }
+        .spin-status {
+            margin-top: 15px;
+            font-size: 1rem;
+            color: #FFD966;
+            min-height: 50px;
+        }
+        
+        .considered-section {
+            background: #07121f;
+            border-radius: 32px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid #7a6a3a;
+        }
+        .considered-title { color: #ffcf6e; }
+        
+        .watched-section {
+            background: #07121f;
+            border-radius: 32px;
+            padding: 20px;
+            border: 1px solid #3a6e7a;
+        }
+        .watched-title { color: #6ec8ff; }
+        
+        .watched-item, .considered-item {
+            background: #0a1622;
+            padding: 12px 16px;
+            margin: 8px 0;
+            border-radius: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+        .watched-movie, .considered-movie {
+            flex: 3;
+            min-width: 150px;
+            color: white;
+            word-break: break-word;
+            overflow-wrap: break-word;
         }
         .watched-date {
-            white-space: normal;
-            text-align: center;
+            color: #FFD966;
+            font-family: monospace;
+            cursor: pointer;
+            text-decoration: underline dotted;
+            white-space: nowrap;
         }
         .edit-icon, .delete-icon, .move-up, .move-down {
-            display: inline-block;
+            background: none;
+            border: none;
+            color: #aaa;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 4px 8px;
+            white-space: nowrap;
         }
-    }
-    
-    @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-5px); }
-        75% { transform: translateX(5px); }
-    }
-    .shake {
-        animation: shake 0.2s ease-in-out 3;
-    }
-</style>
+        .edit-icon:hover { color: #FFD966; }
+        .delete-icon:hover { color: #ff6e6e; }
+        .move-up:hover, .move-down:hover { color: #FFD966; }
+        
+        .status-msg {
+            text-align: center;
+            color: #b9d0ff;
+            font-size: 0.8rem;
+            margin-top: 16px;
+            padding: 8px;
+        }
+        footer {
+            font-size: 0.7rem;
+            text-align: center;
+            color: #5a6e8c;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 650px) {
+            .container { padding: 0; }
+            .main-app { padding: 16px; }
+            .movie-item { flex-direction: column; align-items: stretch; }
+            .action-btn { width: 100%; text-align: center; white-space: normal; }
+            .watched-item, .considered-item { flex-direction: column; align-items: stretch; text-align: center; }
+            .watched-date { white-space: normal; text-align: center; }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .shake { animation: shake 0.2s ease-in-out 3; }
+    </style>
 </head>
 <body>
 <div class="container">
@@ -327,16 +340,25 @@
     </div>
 
     <div id="mainApp" class="main-app">
-        <h1>🍿 SATURDAY MOVIE NIGHT 🎬</h1>
+        <div class="nerd-herd">NERD HERD</div>
+        
+        <!-- GIF Container -->
+        <div class="gif-container">
+            <div class="tenor-gif-embed" data-postid="9214816" data-share-method="host" data-aspect-ratio="1.425" data-width="100%">
+                <a href="https://tenor.com/view/boku-no-hero-academia-head-bang-midoriya-izuku-deku-gif-9214816">Boku No Hero Academia Head Bang GIF</a>
+                from <a href="https://tenor.com/search/boku+no+hero+academia-gifs">Boku No Hero Academia GIFs</a>
+            </div>
+            <script type="text/javascript" async src="https://tenor.com/embed.js"></script>
+        </div>
         
         <div class="saturday-bar">
-            <label>📅 Current Saturday:</label>
+            <label>📅 Saturday:</label>
             <select id="saturdayPicker"></select>
             <button class="new-saturday-btn" id="newSaturdayBtn">➕ New Saturday</button>
             <button class="new-saturday-btn" id="refreshBtn">🔄 Refresh</button>
         </div>
         
-        <!-- CURRENT MOVIE POOL (Top) -->
+        <!-- CURRENT MOVIE POOL -->
         <div class="pool-section">
             <div class="section-title">
                 <span class="pool-title">🎯 CURRENT MOVIE POOL</span>
@@ -346,17 +368,15 @@
                 <input type="text" id="movieInput" placeholder="Add movie title..." autocomplete="off">
                 <button id="addToPoolBtn">➕ Add to Pool</button>
             </div>
-            <div id="poolList" class="movie-list">
-                <div style="text-align:center; color:#6b7f9f;">Loading...</div>
-            </div>
+            <div id="poolList" class="movie-list"><div style="text-align:center; color:#6b7f9f;">Loading...</div></div>
             <div id="moveAllToConsideredContainer" style="margin-top: 12px; text-align: center; display: none;">
                 <button id="moveAllToConsideredBtn" class="action-btn" style="background:#7a5a2e;">📦 Move all remaining to Considered</button>
             </div>
         </div>
         
-        <!-- SPIN SECTION (Below Pool) -->
+        <!-- SPIN SECTION -->
         <div class="spin-section">
-            <button id="spinBtn">🎬 SPIN TO PICK 🎬</button>
+            <button id="spinBtn">SPIN TO WIN!</button>
             <div id="spinStatus" class="spin-status">✨ Ready to spin! ✨</div>
         </div>
         
@@ -366,31 +386,31 @@
                 <span class="considered-title">📋 CONSIDERED LIST</span>
                 <span id="consideredCount" style="color:#ffcf6e; font-size:0.9rem;"></span>
             </div>
-            <div id="consideredList" class="movie-list">
-                <div style="text-align:center; color:#6b7f9f;">Loading...</div>
+            <div class="add-movie-form">
+                <input type="text" id="consideredInput" placeholder="Add movie directly to Considered..." autocomplete="off">
+                <button id="addToConsideredBtn">➕ Add to Considered</button>
             </div>
+            <div id="consideredList" class="movie-list"><div style="text-align:center; color:#6b7f9f;">Loading...</div></div>
         </div>
         
-        <!-- ALL WATCHED (Master History) -->
+        <!-- ALL WATCHED -->
         <div class="watched-section">
             <div class="section-title">
-                <span class="watched-title">✅ ALL WATCHED (Master History)</span>
+                <span class="watched-title">✅ ALL WATCHED</span>
                 <span id="watchedCount" style="color:#6ec8ff; font-size:0.9rem;"></span>
             </div>
             <div class="add-movie-form" style="margin-bottom: 16px;">
                 <input type="text" id="directWatchedInput" placeholder="Movie title..." autocomplete="off">
                 <label style="color:white; display:flex; align-items:center; gap:5px;">
-                    <input type="checkbox" id="naCheckbox"> 📅 N/A (date unknown)
+                    <input type="checkbox" id="naCheckbox"> 📅 N/A
                 </label>
                 <button id="addDirectToWatchedBtn">➕ Add to Watched</button>
             </div>
-            <div id="watchedList" class="movie-list">
-                <div style="text-align:center; color:#6b7f9f;">Loading...</div>
-            </div>
+            <div id="watchedList" class="movie-list"><div style="text-align:center; color:#6b7f9f;">Loading...</div></div>
         </div>
         
         <div id="statusMsg" class="status-msg">🎬 Ready! Select a Saturday, add movies, and spin.</div>
-        <footer>🔒 Passcode protected · Click any date to edit · N/A movies can be reordered with ↑↓</footer>
+        <footer>🔒 Passcode protected · Click any date to edit · N/A movies can be reordered</footer>
     </div>
 </div>
 
@@ -398,16 +418,16 @@
     // ========== FIREBASE CONFIG (REPLACE WITH YOURS) ==========
     const firebaseConfig = {
         apiKey: "AIzaSyCTfeyF0TYe8QurlRLOjxc8EbNByzAh5fc",
-    authDomain: "movie-night-spinner.firebaseapp.com",
-    projectId: "movie-night-spinner",
-    storageBucket: "movie-night-spinner.firebasestorage.app",
-    messagingSenderId: "761257355395",
-    appId: "1:761257355395:web:bd822140a4a071a7b2d3b6"
+        authDomain: "movie-night-spinner.firebaseapp.com",
+        projectId: "movie-night-spinner",
+        storageBucket: "movie-night-spinner.firebasestorage.app",
+        messagingSenderId: "761257355395",
+        appId: "1:761257355395:web:bd822140a4a071a7b2d3b6"
     };
     // ===========================================================
     
     // ========== SECRET PASSCODE (CHANGE THIS) ==========
-    const SECRET_PASSCODE = "nerds";
+    const SECRET_PASSCODE = "nerdherd";
     // ===================================================
     
     firebase.initializeApp(firebaseConfig);
@@ -455,9 +475,7 @@
         const dropdown = document.getElementById("saturdayPicker");
         dropdown.innerHTML = "";
         const saturdays = [];
-        snapshot.forEach(doc => {
-            saturdays.push({ id: doc.id, date: doc.data().date });
-        });
+        snapshot.forEach(doc => { saturdays.push({ id: doc.id, date: doc.data().date }); });
         if (saturdays.length === 0) {
             const defaultDate = getThisSaturdayFormatted();
             await db.collection("saturdays").doc(defaultDate).set({ date: defaultDate });
@@ -479,25 +497,18 @@
         try {
             const poolSnap = await db.collection("moviePool").orderBy("createdAt", "asc").get();
             poolMovies = [];
-            poolSnap.forEach(doc => {
-                poolMovies.push({ id: doc.id, name: doc.data().name });
-            });
+            poolSnap.forEach(doc => { poolMovies.push({ id: doc.id, name: doc.data().name }); });
             
-            const consideredSnap = await db.collection("considered").orderBy("createdAt", "asc").get();
+            const consideredSnap = await db.collection("considered").orderBy("order", "asc").get();
             consideredMovies = [];
             consideredSnap.forEach(doc => {
-                consideredMovies.push({ id: doc.id, name: doc.data().name });
+                consideredMovies.push({ id: doc.id, name: doc.data().name, order: doc.data().order });
             });
             
             const watchedSnap = await db.collection("watched").orderBy("order", "asc").get();
             watchedMovies = [];
             watchedSnap.forEach(doc => {
-                watchedMovies.push({
-                    id: doc.id,
-                    name: doc.data().name,
-                    date: doc.data().date,
-                    order: doc.data().order
-                });
+                watchedMovies.push({ id: doc.id, name: doc.data().name, date: doc.data().date, order: doc.data().order });
             });
             
             renderPool();
@@ -509,49 +520,32 @@
             document.getElementById("watchedCount").innerText = `${watchedMovies.length} movies`;
             
             const moveBtn = document.getElementById("moveAllToConsideredContainer");
-            if (poolMovies.length > 0) moveBtn.style.display = "block";
-            else moveBtn.style.display = "none";
-        } catch (e) {
-            console.error("Load error:", e);
-            showStatus("Error loading data: " + e.message, true);
-        }
+            moveBtn.style.display = poolMovies.length > 0 ? "block" : "none";
+        } catch (e) { console.error(e); showStatus("Error loading data", true); }
     }
     
     function isDuplicate(movieName, list) {
         return list.some(m => m.name.toLowerCase() === movieName.toLowerCase());
     }
     
-    // EDIT TITLE FUNCTION (new)
     async function editMovieTitle(listType, movieId, currentName) {
-        const newName = prompt(`Edit movie title:\nCurrent: "${currentName}"\n\nEnter new title:`, currentName);
+        const newName = prompt(`Edit title:\n"${currentName}"\n\nNew title:`, currentName);
         if (!newName || newName.trim() === currentName) return;
         const trimmedName = newName.trim();
-        if (trimmedName.length === 0) return;
-        
-        // Check for duplicates in the same list
         let targetList;
         if (listType === 'pool') targetList = poolMovies;
         else if (listType === 'considered') targetList = consideredMovies;
         else targetList = watchedMovies;
-        
         if (isDuplicate(trimmedName, targetList.filter(m => m.id !== movieId))) {
-            showStatus(`⚠️ "${trimmedName}" already exists in this list!`, true);
+            showStatus(`⚠️ "${trimmedName}" already exists!`, true);
             return;
         }
-        
         try {
-            let collectionName;
-            if (listType === 'pool') collectionName = "moviePool";
-            else if (listType === 'considered') collectionName = "considered";
-            else collectionName = "watched";
-            
+            let collectionName = listType === 'pool' ? "moviePool" : (listType === 'considered' ? "considered" : "watched");
             await db.collection(collectionName).doc(movieId).update({ name: trimmedName });
-            showStatus(`✏️ Renamed "${currentName}" → "${trimmedName}"`);
+            showStatus(`✏️ Renamed to "${trimmedName}"`);
             await loadAllData();
-        } catch (e) {
-            console.error("Edit error:", e);
-            showStatus("Error editing title: " + e.message, true);
-        }
+        } catch(e) { showStatus("Error: " + e.message, true); }
     }
     
     function renderPool() {
@@ -563,17 +557,23 @@
         let html = '';
         poolMovies.forEach((movie, idx) => {
             const isHighlight = (idx === currentHighlightIndex);
-            html += `
-                <div class="movie-item ${isHighlight ? 'highlight' : ''}">
-                    <span class="movie-name">${escapeHtml(movie.name)}</span>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <button class="action-btn edit" onclick="editMovieTitle('pool', '${movie.id}', '${escapeForOnclick(movie.name)}')">✏️ Edit</button>
-                        <button class="action-btn watch" onclick="markWatchedFromPool('${movie.id}', '${escapeForOnclick(movie.name)}')">🎬 Watched</button>
-                        <button class="action-btn consider" onclick="moveToConsidered('${movie.id}', '${escapeForOnclick(movie.name)}')">📋 Consider</button>                    </div>
+            html += `<div class="movie-item ${isHighlight ? 'highlight' : ''}" data-id="${movie.id}" data-name="${escapeHtml(movie.name)}">
+                <span class="movie-name">${escapeHtml(movie.name)}</span>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button class="action-btn edit" data-action="edit">✏️ Edit</button>
+                    <button class="action-btn watch" data-action="watch">🎬 Watched</button>
+                    <button class="action-btn consider" data-action="consider">📋 Consider</button>
                 </div>
-            `;
+            </div>`;
         });
         container.innerHTML = html;
+        container.querySelectorAll('.movie-item').forEach(item => {
+            const movieId = item.dataset.id;
+            const movieName = item.dataset.name;
+            item.querySelector('[data-action="edit"]')?.addEventListener('click', () => editMovieTitle('pool', movieId, movieName));
+            item.querySelector('[data-action="watch"]')?.addEventListener('click', () => markWatchedFromPool(movieId, movieName));
+            item.querySelector('[data-action="consider"]')?.addEventListener('click', () => moveToConsidered(movieId, movieName));
+        });
     }
     
     function renderConsidered() {
@@ -583,18 +583,30 @@
             return;
         }
         let html = '';
-        consideredMovies.forEach(movie => {
-            html += `
-                <div class="movie-item">
-                    <span class="movie-name">${escapeHtml(movie.name)}</span>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <button class="action-btn edit" onclick="editMovieTitle('considered', '${movie.id}', '${escapeForOnclick(movie.name)}')">✏️ Edit</button>
-                        <button class="action-btn" onclick="moveToWatchedFromConsidered('${movie.id}', '${escapeForOnclick(movie.name)}')">✅ Move to Watched</button>
-                        <button class="action-btn back" onclick="moveBackToPool('${movie.id}', '${escapeForOnclick(movie.name)}')">↩️ Back to Pool</button>                    </div>
+        consideredMovies.forEach((movie, idx) => {
+            html += `<div class="watched-item" data-id="${movie.id}" data-name="${escapeHtml(movie.name)}" data-order="${idx}">
+                <span class="watched-movie">📋 ${escapeHtml(movie.name)}</span>
+                <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                    <button class="edit-icon" data-action="editTitle" title="Edit title">✏️</button>
+                    <button class="edit-icon" data-action="moveToWatched" title="Move to Watched">✅</button>
+                    <button class="edit-icon" data-action="backToPool" title="Back to Pool">↩️</button>
+                    <button class="delete-icon" data-action="delete" title="Delete">🗑️</button>
+                    <button class="move-up" data-action="moveUp" title="Move up">↑</button>
+                    <button class="move-down" data-action="moveDown" title="Move down">↓</button>
                 </div>
-            `;
+            </div>`;
         });
         container.innerHTML = html;
+        container.querySelectorAll('.watched-item').forEach((item, idx) => {
+            const movieId = item.dataset.id;
+            const movieName = item.dataset.name;
+            item.querySelector('[data-action="editTitle"]')?.addEventListener('click', () => editMovieTitle('considered', movieId, movieName));
+            item.querySelector('[data-action="moveToWatched"]')?.addEventListener('click', () => moveToWatchedFromConsidered(movieId, movieName));
+            item.querySelector('[data-action="backToPool"]')?.addEventListener('click', () => moveBackToPool(movieId, movieName));
+            item.querySelector('[data-action="delete"]')?.addEventListener('click', () => deleteConsidered(movieId, movieName));
+            item.querySelector('[data-action="moveUp"]')?.addEventListener('click', () => reorderConsidered(movieId, 'up', idx));
+            item.querySelector('[data-action="moveDown"]')?.addEventListener('click', () => reorderConsidered(movieId, 'down', idx));
+        });
     }
     
     function renderWatched() {
@@ -607,147 +619,126 @@
         watchedMovies.forEach((movie, idx) => {
             const displayDate = formatDateForDisplay(movie.date);
             const isNA = (movie.date === "N/A");
-            html += `
-                <div class="watched-item" data-id="${movie.id}">
-                    <span class="watched-movie">✅ ${escapeHtml(movie.name)}</span>
-                    <span class="watched-date" onclick="editWatchedDate('${movie.id}', '${escapeForOnclick(movie.name)}', '${movie.date || "N/A"}')">📅 ${displayDate}</span>
-                    <div style="display: flex; gap: 4px; flex-wrap: wrap;">
-                        <button class="edit-icon" onclick="editMovieTitle('watched', '${movie.id}', '${escapeForOnclick(movie.name)}')" title="Edit title">✏️</button>
-                        <button class="edit-icon" onclick="editWatchedDate('${movie.id}', '${escapeForOnclick(movie.name)}', '${movie.date || "N/A"}')" title="Edit date">📅</button>
-                        <button class="delete-icon" onclick="deleteWatched('${movie.id}', '${escapeHtml(movie.name)}')" title="Delete">🗑️</button>
-                        ${isNA ? `
-                            <button class="move-up" onclick="reorderWatched('${movie.id}', 'up', ${idx})" title="Move up">↑</button>
-                            <button class="move-down" onclick="reorderWatched('${movie.id}', 'down', ${idx})" title="Move down">↓</button>
-                        ` : ''}
-                    </div>
+            html += `<div class="watched-item" data-id="${movie.id}" data-name="${escapeHtml(movie.name)}" data-date="${movie.date || 'N/A'}" data-order="${idx}">
+                <span class="watched-movie">✅ ${escapeHtml(movie.name)}</span>
+                <span class="watched-date" data-action="editDate">📅 ${displayDate}</span>
+                <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                    <button class="edit-icon" data-action="editTitle" title="Edit title">✏️</button>
+                    <button class="edit-icon" data-action="editDate" title="Edit date">📅</button>
+                    <button class="delete-icon" data-action="delete" title="Delete">🗑️</button>
+                    ${isNA ? `<button class="move-up" data-action="moveUp" title="Move up">↑</button>
+                              <button class="move-down" data-action="moveDown" title="Move down">↓</button>` : ''}
                 </div>
-            `;
+            </div>`;
         });
         container.innerHTML = html;
+        container.querySelectorAll('.watched-item').forEach((item, idx) => {
+            const movieId = item.dataset.id;
+            const movieName = item.dataset.name;
+            const currentDate = item.dataset.date;
+            item.querySelector('[data-action="editTitle"]')?.addEventListener('click', () => editMovieTitle('watched', movieId, movieName));
+            item.querySelectorAll('[data-action="editDate"]').forEach(btn => {
+                btn.addEventListener('click', () => editWatchedDate(movieId, movieName, currentDate));
+            });
+            item.querySelector('[data-action="delete"]')?.addEventListener('click', () => deleteWatched(movieId, movieName));
+            item.querySelector('[data-action="moveUp"]')?.addEventListener('click', () => reorderWatched(movieId, 'up', idx));
+            item.querySelector('[data-action="moveDown"]')?.addEventListener('click', () => reorderWatched(movieId, 'down', idx));
+        });
     }
     
     async function markWatchedFromPool(movieId, movieName) {
         const dateToUse = currentSaturdayId;
         try {
             const newOrder = watchedMovies.length;
-            await db.collection("watched").add({
-                name: movieName,
-                date: dateToUse,
-                order: newOrder,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            await db.collection("watched").add({ name: movieName, date: dateToUse, order: newOrder, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
             await db.collection("moviePool").doc(movieId).delete();
             showStatus(`✅ "${movieName}" watched on ${dateToUse}!`);
             await loadAllData();
-            
-            if (poolMovies.length > 0) {
-                const moveRemaining = confirm(`🎬 Move the remaining ${poolMovies.length} movie(s) to Considered list?`);
-                if (moveRemaining) {
-                    for (let movie of poolMovies) {
-                        await db.collection("considered").add({
-                            name: movie.name,
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                        await db.collection("moviePool").doc(movie.id).delete();
-                    }
-                    showStatus(`📋 Moved ${poolMovies.length} movies to Considered.`);
-                    await loadAllData();
+            if (poolMovies.length > 0 && confirm(`Move remaining ${poolMovies.length} movie(s) to Considered?`)) {
+                for (let movie of poolMovies) {
+                    await db.collection("considered").add({ name: movie.name, order: consideredMovies.length, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                    await db.collection("moviePool").doc(movie.id).delete();
                 }
+                showStatus(`📋 Moved to Considered.`);
+                await loadAllData();
             }
-        } catch(e) {
-            console.error("Mark watched error:", e);
-            showStatus("Error marking watched: " + e.message, true);
-        }
+        } catch(e) { showStatus("Error: " + e.message, true); }
     }
     
-    window.moveToConsidered = async function(movieId, movieName) {
+    async function moveToConsidered(movieId, movieName) {
         try {
-            await db.collection("considered").add({
-                name: movieName,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            await db.collection("considered").add({ name: movieName, order: consideredMovies.length, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
             await db.collection("moviePool").doc(movieId).delete();
             showStatus(`📋 "${movieName}" moved to Considered.`);
             await loadAllData();
-        } catch(e) { 
-            console.error(e);
-            showStatus("Error: " + e.message, true); 
-        }
-    };
+        } catch(e) { showStatus("Error: " + e.message, true); }
+    }
     
-    window.moveToWatchedFromConsidered = async function(consideredId, movieName) {
-        const dateInput = prompt(`📅 Enter date for "${movieName}" (MM-DD-YYYY) or type "N/A":`, getTodayFormatted());
+    async function moveToWatchedFromConsidered(consideredId, movieName) {
+        const dateInput = prompt(`Date for "${movieName}" (MM-DD-YYYY or N/A):`, getTodayFormatted());
         if (!dateInput) return;
         let finalDate = dateInput.trim().toUpperCase();
-        if (finalDate !== "N/A" && !finalDate.match(/^\d{2}-\d{2}-\d{4}$/)) {
-            alert("Please use format MM-DD-YYYY or type N/A");
-            return;
-        }
+        if (finalDate !== "N/A" && !finalDate.match(/^\d{2}-\d{2}-\d{4}$/)) { alert("Use MM-DD-YYYY or N/A"); return; }
         try {
-            const newOrder = watchedMovies.length;
-            await db.collection("watched").add({
-                name: movieName,
-                date: finalDate,
-                order: newOrder,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            await db.collection("watched").add({ name: movieName, date: finalDate, order: watchedMovies.length, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
             await db.collection("considered").doc(consideredId).delete();
-            showStatus(`✅ "${movieName}" added to Watched with date ${finalDate}`);
+            showStatus(`✅ "${movieName}" added to Watched`);
             await loadAllData();
-        } catch(e) { 
-            console.error(e);
-            showStatus("Error: " + e.message, true); 
-        }
-    };
+        } catch(e) { showStatus("Error: " + e.message, true); }
+    }
     
-    window.moveBackToPool = async function(consideredId, movieName) {
+    async function moveBackToPool(consideredId, movieName) {
         try {
-            await db.collection("moviePool").add({
-                name: movieName,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            await db.collection("moviePool").add({ name: movieName, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
             await db.collection("considered").doc(consideredId).delete();
             showStatus(`🎯 "${movieName}" moved back to Pool.`);
             await loadAllData();
-        } catch(e) { 
-            console.error(e);
-            showStatus("Error: " + e.message, true); 
-        }
-    };
+        } catch(e) { showStatus("Error: " + e.message, true); }
+    }
     
-    window.editWatchedDate = async function(watchedId, movieName, currentDate) {
+    async function deleteConsidered(consideredId, movieName) {
+        if (!confirm(`Remove "${movieName}" from Considered?`)) return;
+        try {
+            await db.collection("considered").doc(consideredId).delete();
+            showStatus(`Removed "${movieName}" from Considered.`);
+            await loadAllData();
+        } catch(e) { showStatus("Error: " + e.message, true); }
+    }
+    
+    async function reorderConsidered(movieId, direction, currentIndex) {
+        const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+        if (newIndex < 0 || newIndex >= consideredMovies.length) return;
+        const targetMovie = consideredMovies[newIndex];
+        const tempOrder = consideredMovies[currentIndex].order;
+        const targetOrder = targetMovie.order;
+        await db.collection("considered").doc(movieId).update({ order: targetOrder });
+        await db.collection("considered").doc(targetMovie.id).update({ order: tempOrder });
+        await loadAllData();
+    }
+    
+    async function editWatchedDate(watchedId, movieName, currentDate) {
         const displayCurrent = formatDateForDisplay(currentDate);
-        const newDate = prompt(`Edit date for "${movieName}"\nCurrent: ${displayCurrent}\n\nEnter MM-DD-YYYY or "N/A":`, displayCurrent);
+        const newDate = prompt(`Edit date for "${movieName}"\nCurrent: ${displayCurrent}\n\nMM-DD-YYYY or N/A:`, displayCurrent);
         if (!newDate) return;
         let finalDate = newDate.trim().toUpperCase();
-        if (finalDate !== "N/A" && !finalDate.match(/^\d{2}-\d{2}-\d{4}$/)) {
-            alert("Please use format MM-DD-YYYY or type N/A");
-            return;
-        }
+        if (finalDate !== "N/A" && !finalDate.match(/^\d{2}-\d{2}-\d{4}$/)) { alert("Use MM-DD-YYYY or N/A"); return; }
         try {
             await db.collection("watched").doc(watchedId).update({ date: finalDate });
-            showStatus(`📅 Updated "${movieName}" to ${finalDate}`);
+            showStatus(`📅 Updated to ${finalDate}`);
             await loadAllData();
-        } catch(e) {
-            console.error("Date edit error:", e);
-            showStatus("Error updating date: " + e.message, true);
-        }
-    };
+        } catch(e) { showStatus("Error: " + e.message, true); }
+    }
     
-    window.deleteWatched = async function(watchedId, movieName) {
-        const confirmDelete = window.confirm(`🗑️ Remove "${movieName}" from Watched history permanently?`);
-        if (!confirmDelete) return;
+    async function deleteWatched(watchedId, movieName) {
+        if (!confirm(`Remove "${movieName}" from Watched history?`)) return;
         try {
             await db.collection("watched").doc(watchedId).delete();
-            showStatus(`Removed "${movieName}" from history.`);
+            showStatus(`Removed "${movieName}".`);
             await loadAllData();
-        } catch(e) {
-            console.error("Delete error:", e);
-            showStatus("Error deleting: " + e.message, true);
-        }
-    };
+        } catch(e) { showStatus("Error: " + e.message, true); }
+    }
     
-    window.reorderWatched = async function(watchedId, direction, currentIndex) {
+    async function reorderWatched(watchedId, direction, currentIndex) {
         const naMovies = watchedMovies.filter(m => m.date === "N/A");
         const currentNaIndex = naMovies.findIndex(m => m.id === watchedId);
         if (direction === "up" && currentNaIndex > 0) {
@@ -764,8 +755,7 @@
             await db.collection("watched").doc(below.id).update({ order: tempOrder });
         }
         await loadAllData();
-        showStatus("Reordered N/A movies");
-    };
+    }
     
     async function addDirectToWatched() {
         const input = document.getElementById("directWatchedInput");
@@ -773,181 +763,113 @@
         if (!movieName) return;
         const isNA = document.getElementById("naCheckbox").checked;
         const dateToUse = isNA ? "N/A" : currentSaturdayId;
-        
-        if (isDuplicate(movieName, watchedMovies)) {
-            showStatus(`⚠️ "${movieName}" already in Watched history!`, true);
-            return;
-        }
-        
+        if (isDuplicate(movieName, watchedMovies)) { showStatus(`⚠️ Already in Watched!`, true); return; }
         try {
-            const newOrder = watchedMovies.length;
-            await db.collection("watched").add({
-                name: movieName,
-                date: dateToUse,
-                order: newOrder,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            await db.collection("watched").add({ name: movieName, date: dateToUse, order: watchedMovies.length, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
             input.value = "";
             document.getElementById("naCheckbox").checked = false;
-            showStatus(`✅ "${movieName}" added to Watched (${dateToUse})`);
+            showStatus(`✅ Added to Watched (${dateToUse})`);
             await loadAllData();
-        } catch(e) { 
-            console.error(e);
-            showStatus("Error: " + e.message, true); 
-        }
+        } catch(e) { showStatus("Error: " + e.message, true); }
     }
     
     async function addToPool() {
         const input = document.getElementById("movieInput");
         const movieName = input.value.trim();
         if (!movieName) return;
-        
-        if (isDuplicate(movieName, poolMovies)) {
-            showStatus(`⚠️ "${movieName}" already in Pool!`, true);
-            return;
-        }
-        if (isDuplicate(movieName, consideredMovies)) {
-            showStatus(`⚠️ "${movieName}" is in Considered list. Move it back first.`, true);
-            return;
-        }
-        
+        if (isDuplicate(movieName, poolMovies)) { showStatus(`⚠️ Already in Pool!`, true); return; }
+        if (isDuplicate(movieName, consideredMovies)) { showStatus(`⚠️ In Considered list!`, true); return; }
         try {
-            await db.collection("moviePool").add({
-                name: movieName,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            await db.collection("moviePool").add({ name: movieName, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
             input.value = "";
-            showStatus(`➕ "${movieName}" added to Pool`);
+            showStatus(`➕ Added to Pool`);
             await loadAllData();
-        } catch(e) { 
-            console.error(e);
-            showStatus("Error: " + e.message, true); 
-        }
+        } catch(e) { showStatus("Error: " + e.message, true); }
+    }
+    
+    async function addToConsidered() {
+        const input = document.getElementById("consideredInput");
+        const movieName = input.value.trim();
+        if (!movieName) return;
+        if (isDuplicate(movieName, consideredMovies)) { showStatus(`⚠️ Already in Considered!`, true); return; }
+        if (isDuplicate(movieName, poolMovies)) { showStatus(`⚠️ In Pool! Move it instead.`, true); return; }
+        try {
+            await db.collection("considered").add({ name: movieName, order: consideredMovies.length, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+            input.value = "";
+            showStatus(`➕ Added to Considered`);
+            await loadAllData();
+        } catch(e) { showStatus("Error: " + e.message, true); }
     }
     
     async function moveAllToConsidered() {
         if (poolMovies.length === 0) return;
-        const confirmMove = window.confirm(`Move all ${poolMovies.length} movie(s) from Pool to Considered?`);
-        if (!confirmMove) return;
+        if (!confirm(`Move all ${poolMovies.length} movie(s) to Considered?`)) return;
         try {
             for (let movie of poolMovies) {
-                await db.collection("considered").add({
-                    name: movie.name,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
+                await db.collection("considered").add({ name: movie.name, order: consideredMovies.length, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
                 await db.collection("moviePool").doc(movie.id).delete();
             }
-            showStatus(`📦 Moved ${poolMovies.length} movies to Considered.`);
+            showStatus(`📦 Moved to Considered.`);
             await loadAllData();
-        } catch(e) { 
-            console.error(e);
-            showStatus("Error: " + e.message, true); 
-        }
+        } catch(e) { showStatus("Error: " + e.message, true); }
     }
     
     async function spin() {
         if (isSpinning) { showStatus("Already spinning!", true); return; }
-        if (poolMovies.length === 0) { showStatus("No movies in pool! Add some first.", true); return; }
-        
+        if (poolMovies.length === 0) { showStatus("No movies in pool!", true); return; }
         isSpinning = true;
         const spinBtn = document.getElementById("spinBtn");
         const spinStatus = document.getElementById("spinStatus");
         spinBtn.innerText = "🌀 SPINNING...";
-        
         const totalMovies = poolMovies.length;
-        let steps = 0;
-        const maxSteps = 40 + Math.floor(Math.random() * 25);
-        let intervalTime = 50;
-        
+        let steps = 0, maxSteps = 40 + Math.floor(Math.random() * 25), intervalTime = 50;
         if (spinInterval) clearInterval(spinInterval);
-        
         spinInterval = setInterval(() => {
             currentHighlightIndex = (currentHighlightIndex + 1) % totalMovies;
             renderPool();
             steps++;
-            
             if (steps > maxSteps - 18) intervalTime = 180;
             else if (steps > maxSteps - 28) intervalTime = 130;
             else if (steps > maxSteps - 36) intervalTime = 90;
             else if (steps > maxSteps - 42) intervalTime = 65;
-            
             if (steps >= maxSteps) {
                 clearInterval(spinInterval);
                 spinInterval = null;
                 const chosenMovie = poolMovies[currentHighlightIndex];
-                
                 document.querySelector('.spin-section').classList.add('shake');
-                setTimeout(() => {
-                    document.querySelector('.spin-section').classList.remove('shake');
-                }, 600);
-                
-                spinStatus.innerHTML = `🎉 LANDED ON: "${chosenMovie.name}"! 🎉<br>Click "Watched" on the movie above.`;
-                spinBtn.innerText = "🎬 SPIN TO PICK 🎬";
+                setTimeout(() => document.querySelector('.spin-section').classList.remove('shake'), 600);
+                spinStatus.innerHTML = `🎉 LANDED ON: "${chosenMovie.name}"! 🎉<br>Click "Watched" above.`;
+                spinBtn.innerText = "SPIN TO WIN!";
                 isSpinning = false;
-                
-                setTimeout(() => {
-                    const highlighted = document.querySelector('.movie-item.highlight');
-                    if (highlighted) highlighted.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 100);
+                setTimeout(() => document.querySelector('.movie-item.highlight')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
             }
         }, intervalTime);
     }
     
     async function createNewSaturday() {
-        const newDate = prompt("Enter Saturday date (MM-DD-YYYY):", getThisSaturdayFormatted());
-        if (!newDate) return;
-        if (!newDate.match(/^\d{2}-\d{2}-\d{4}$/)) {
-            alert("Please use format MM-DD-YYYY");
-            return;
-        }
+        const newDate = prompt("Enter Saturday (MM-DD-YYYY):", getThisSaturdayFormatted());
+        if (!newDate || !newDate.match(/^\d{2}-\d{2}-\d{4}$/)) { alert("Use MM-DD-YYYY"); return; }
         try {
             await db.collection("saturdays").doc(newDate).set({ date: newDate });
             await loadSaturdays();
-            showStatus(`📅 Created Saturday ${newDate}`);
-        } catch(e) { 
-            console.error(e);
-            showStatus("Error: " + e.message, true); 
-        }
+            showStatus(`📅 Created ${newDate}`);
+        } catch(e) { showStatus("Error: " + e.message, true); }
     }
     
     function showStatus(msg, isError = false) {
         const statusDiv = document.getElementById("statusMsg");
         statusDiv.innerHTML = msg;
         statusDiv.style.color = isError ? "#ffaa99" : "#b9d0ff";
-        setTimeout(() => {
-            if (document.getElementById("statusMsg")?.innerHTML === msg)
-                statusDiv.style.color = "#b9d0ff";
-        }, 4000);
+        setTimeout(() => { if (document.getElementById("statusMsg")?.innerHTML === msg) statusDiv.style.color = "#b9d0ff"; }, 4000);
     }
     
     function escapeHtml(str) {
         if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
+        return str.replace(/[&<>]/g, m => { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; });
     }
-
-    function escapeForOnclick(str) {
-    if (!str) return '';
-    return str.replace(/'/g, "&#39;").replace(/"/g, '&quot;').replace(/\\/g, '&#92;');
-    }
-    
-    // Make functions global for onclick handlers
-    window.editMovieTitle = editMovieTitle;
-    window.markWatchedFromPool = markWatchedFromPool;
-    window.moveToConsidered = moveToConsidered;
-    window.moveToWatchedFromConsidered = moveToWatchedFromConsidered;
-    window.moveBackToPool = moveBackToPool;
-    window.editWatchedDate = editWatchedDate;
-    window.deleteWatched = deleteWatched;
-    window.reorderWatched = reorderWatched;
     
     function checkPasscode() {
-        const stored = sessionStorage.getItem("movieNightUnlocked");
-        if (stored === "true") {
+        if (sessionStorage.getItem("movieNightUnlocked") === "true") {
             document.getElementById("passcodeScreen").style.display = "none";
             document.getElementById("mainApp").style.display = "block";
             initApp();
@@ -957,8 +879,7 @@
     }
     
     function unlock() {
-        const input = document.getElementById("passcodeInput").value;
-        if (input === SECRET_PASSCODE) {
+        if (document.getElementById("passcodeInput").value === SECRET_PASSCODE) {
             sessionStorage.setItem("movieNightUnlocked", "true");
             document.getElementById("passcodeScreen").style.display = "none";
             document.getElementById("mainApp").style.display = "block";
@@ -973,21 +894,20 @@
         await loadSaturdays();
         await loadAllData();
         document.getElementById("addToPoolBtn").onclick = addToPool;
+        document.getElementById("addToConsideredBtn").onclick = addToConsidered;
         document.getElementById("addDirectToWatchedBtn").onclick = addDirectToWatched;
         document.getElementById("spinBtn").onclick = spin;
         document.getElementById("newSaturdayBtn").onclick = createNewSaturday;
         document.getElementById("refreshBtn").onclick = () => loadAllData();
         document.getElementById("moveAllToConsideredBtn").onclick = moveAllToConsidered;
-        document.getElementById("movieInput").addEventListener("keypress", (e) => { if (e.key === "Enter") addToPool(); });
-        document.getElementById("directWatchedInput").addEventListener("keypress", (e) => { if (e.key === "Enter") addDirectToWatched(); });
-        document.getElementById("saturdayPicker").addEventListener("change", async (e) => {
-            currentSaturdayId = e.target.value;
-            showStatus(`📅 Switched to Saturday ${currentSaturdayId}`);
-        });
+        document.getElementById("movieInput").addEventListener("keypress", e => { if (e.key === "Enter") addToPool(); });
+        document.getElementById("consideredInput").addEventListener("keypress", e => { if (e.key === "Enter") addToConsidered(); });
+        document.getElementById("directWatchedInput").addEventListener("keypress", e => { if (e.key === "Enter") addDirectToWatched(); });
+        document.getElementById("saturdayPicker").addEventListener("change", async e => { currentSaturdayId = e.target.value; showStatus(`📅 Switched to ${currentSaturdayId}`); });
     }
     
-    document.getElementById("unlockBtn").addEventListener("click", unlock);
-    document.getElementById("passcodeInput").addEventListener("keypress", (e) => { if (e.key === "Enter") unlock(); });
+    document.getElementById("unlockBtn").onclick = unlock;
+    document.getElementById("passcodeInput").addEventListener("keypress", e => { if (e.key === "Enter") unlock(); });
     checkPasscode();
 </script>
 </body>
