@@ -75,9 +75,6 @@
             text-shadow: 0 0 10px rgba(255,255,255,0.3);
         }
         
-        /* Old GIF Container?? */
-
-        
         h1 {
             text-align: center;
             font-size: 1.5rem;
@@ -321,12 +318,6 @@
             75% { transform: translateX(5px); }
         }
         .shake { animation: shake 0.2s ease-in-out 3; }
-
-        .gif-container img {
-            width: 100px !important;
-            max-width: 100px !important;
-        }
-        
     </style>
 </head>
 <body>
@@ -341,9 +332,11 @@
     <div id="mainApp" class="main-app">
         <div class="nerd-herd">NERD HERD</div>
         
-        <!-- GIF Container -->
-       <div style="text-align: center; margin: 10px 0;"><img src="https://media.tenor.com/MPme.gif" style="width: 100px; border-radius: 20px;"></div>
-
+        <!-- GIF - change the 80px to whatever size you want -->
+        <div style="text-align: center; margin: 10px 0;">
+            <img src="https://media.tenor.com/MPme.gif" style="width: 80px; border-radius: 20px;">
+        </div>
+        
         <h1>🍿 SATURDAY MOVIE NIGHT 🎬</h1>
         
         <div class="saturday-bar">
@@ -412,12 +405,12 @@
 <script>
     // ========== FIREBASE CONFIG (REPLACE WITH YOURS) ==========
     const firebaseConfig = {
-        apiKey: "AIzaSyCTfeyF0TYe8QurlRLOjxc8EbNByzAh5fc",
-        authDomain: "movie-night-spinner.firebaseapp.com",
-        projectId: "movie-night-spinner",
-        storageBucket: "movie-night-spinner.firebasestorage.app",
-        messagingSenderId: "761257355395",
-        appId: "1:761257355395:web:bd822140a4a071a7b2d3b6"
+         apiKey: "AIzaSyCTfeyF0TYe8QurlRLOjxc8EbNByzAh5fc",
+    authDomain: "movie-night-spinner.firebaseapp.com",
+    projectId: "movie-night-spinner",
+    storageBucket: "movie-night-spinner.firebasestorage.app",
+    messagingSenderId: "761257355395",
+    appId: "1:761257355395:web:bd822140a4a071a7b2d3b6"
     };
     // ===========================================================
     
