@@ -567,10 +567,9 @@
                 <div class="movie-item ${isHighlight ? 'highlight' : ''}">
                     <span class="movie-name">${escapeHtml(movie.name)}</span>
                     <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <button class="action-btn edit" onclick="editMovieTitle('pool', '${movie.id}', '${escapeHtml(movie.name)}')">✏️ Edit</button>
-                        <button class="action-btn watch" onclick="markWatchedFromPool('${movie.id}', '${escapeHtml(movie.name)}')">🎬 Watched</button>
-                        <button class="action-btn consider" onclick="moveToConsidered('${movie.id}', '${escapeHtml(movie.name)}')">📋 Consider</button>
-                    </div>
+                        <button class="action-btn edit" onclick="editMovieTitle('pool', '${movie.id}', '${escapeForOnclick(movie.name)}')">✏️ Edit</button>
+                        <button class="action-btn watch" onclick="markWatchedFromPool('${movie.id}', '${escapeForOnclick(movie.name)}')">🎬 Watched</button>
+                        <button class="action-btn consider" onclick="moveToConsidered('${movie.id}', '${escapeForOnclick(movie.name)}')">📋 Consider</button>                    </div>
                 </div>
             `;
         });
@@ -589,10 +588,9 @@
                 <div class="movie-item">
                     <span class="movie-name">${escapeHtml(movie.name)}</span>
                     <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <button class="action-btn edit" onclick="editMovieTitle('considered', '${movie.id}', '${escapeHtml(movie.name)}')">✏️ Edit</button>
-                        <button class="action-btn" onclick="moveToWatchedFromConsidered('${movie.id}', '${escapeHtml(movie.name)}')">✅ Move to Watched</button>
-                        <button class="action-btn back" onclick="moveBackToPool('${movie.id}', '${escapeHtml(movie.name)}')">↩️ Back to Pool</button>
-                    </div>
+                        <button class="action-btn edit" onclick="editMovieTitle('considered', '${movie.id}', '${escapeForOnclick(movie.name)}')">✏️ Edit</button>
+                        <button class="action-btn" onclick="moveToWatchedFromConsidered('${movie.id}', '${escapeForOnclick(movie.name)}')">✅ Move to Watched</button>
+                        <button class="action-btn back" onclick="moveBackToPool('${movie.id}', '${escapeForOnclick(movie.name)}')">↩️ Back to Pool</button>                    </div>
                 </div>
             `;
         });
@@ -612,10 +610,10 @@
             html += `
                 <div class="watched-item" data-id="${movie.id}">
                     <span class="watched-movie">✅ ${escapeHtml(movie.name)}</span>
-                    <span class="watched-date" onclick="editWatchedDate('${movie.id}', '${escapeHtml(movie.name)}', '${movie.date || "N/A"}')">📅 ${displayDate}</span>
+                    <span class="watched-date" onclick="editWatchedDate('${movie.id}', '${escapeForOnclick(movie.name)}', '${movie.date || "N/A"}')">📅 ${displayDate}</span>
                     <div style="display: flex; gap: 4px; flex-wrap: wrap;">
-                        <button class="edit-icon" onclick="editMovieTitle('watched', '${movie.id}', '${escapeHtml(movie.name)}')" title="Edit title">✏️</button>
-                        <button class="edit-icon" onclick="editWatchedDate('${movie.id}', '${escapeHtml(movie.name)}', '${movie.date || "N/A"}')" title="Edit date">📅</button>
+                        <button class="edit-icon" onclick="editMovieTitle('watched', '${movie.id}', '${escapeForOnclick(movie.name)}')" title="Edit title">✏️</button>
+                        <button class="edit-icon" onclick="editWatchedDate('${movie.id}', '${escapeForOnclick(movie.name)}', '${movie.date || "N/A"}')" title="Edit date">📅</button>
                         <button class="delete-icon" onclick="deleteWatched('${movie.id}', '${escapeHtml(movie.name)}')" title="Delete">🗑️</button>
                         ${isNA ? `
                             <button class="move-up" onclick="reorderWatched('${movie.id}', 'up', ${idx})" title="Move up">↑</button>
@@ -930,6 +928,11 @@
             if (m === '>') return '&gt;';
             return m;
         });
+    }
+
+    function escapeForOnclick(str) {
+    if (!str) return '';
+    return str.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\\/g, '\\\\');
     }
     
     // Make functions global for onclick handlers
